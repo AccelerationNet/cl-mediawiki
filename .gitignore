@@ -1,0 +1,6 @@
+.svn
+build
+dist
+*~
+*#
+*.fasl
