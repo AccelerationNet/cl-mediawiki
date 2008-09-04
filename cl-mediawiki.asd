@@ -13,4 +13,4 @@
 			:components ((:file "packages")
 				     (:file "main")
 				     (:file "query" :depends-on ("packages" "main")))))
-  :depends-on (:cxml :iterate :flexi-streams :arnesi :swank :adwcodebase :cl-interpol :drakma))
+  :depends-on (:cxml :iterate :flexi-streams :cl-interpol :drakma :cl-unification))
