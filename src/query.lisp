@@ -2,7 +2,12 @@
 (cl-interpol:enable-interpol-syntax)
 
 (defun get-page-content (title)
-  (let ((parameters #?"action=query&prop=revisions&rvprop=content&titles=${title}"))
+  (let ((parameters
+	 (make-parameters
+	  `((action query)
+	    (prop revisions)
+	    (rvprop content)
+	    (titles ,title)))))
     (flet ((page-content (?title sxml)
 	     "Accepts sxml and pulls out the page content from it"
 	     (declare (ignorable ?title)) ;; supress compiler noise
@@ -50,8 +55,14 @@
 
    tokens, set of : :move :delete :edit"
   (let* (;; put pipes between the downcased tokens
-	 (token-string (format nil "~{~(~a~)~^%7C~}" tokens))
-	 (query #?"action=query&prop=info&intoken=${token-string}&titles=${title}"))
+	 (token-string (format nil "~{~(~a~)~^|~}" tokens))
+	 (parameters
+	  (make-parameters
+	  `((action query)
+	    (prop info)
+	    (intoken ,token-string)
+	    (titles ,title)))
+	   ))
     (flet ((bind-token-&-ts (?title sxml)
 	     "Accepts sxml and pulls out the page content from it"
 	     (declare (ignorable ?title)) ;; supress compiler noise
@@ -75,5 +86,5 @@
 	       )))
       (bind-token-&-ts
        title 
-       (parse-api-response-to-sxml (make-api-request query))))
+       (parse-api-response-to-sxml (make-api-request parameters))))
     ))
