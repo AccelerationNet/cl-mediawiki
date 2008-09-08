@@ -13,4 +13,4 @@
 			:components ((:file "packages")
 				     (:file "main")
 				     (:file "query" :depends-on ("packages" "main")))))
-  :depends-on (:cxml :iterate :flexi-streams :cl-interpol :drakma :cl-unification))
+  :depends-on (:cxml :drakma :cl-unification))

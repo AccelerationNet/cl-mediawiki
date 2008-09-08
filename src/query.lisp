@@ -1,5 +1,4 @@
 (in-package :cl-mediawiki)
-(cl-interpol:enable-interpol-syntax)
 
 (defun get-page-content (title)
   (let ((parameters
@@ -81,7 +80,7 @@
 		(loop for token in tokens
 		      collecting
 		   (cons token
-			 (attribute-value #?"${token}token" alist)))
+			 (attribute-value (format nil "~atoken" token) alist)))
 		:timestamp (attribute-value "touched" alist))
 	       )))
       (bind-token-&-ts

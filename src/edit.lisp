@@ -1,5 +1,4 @@
 (in-package :cl-mediawiki)
-(cl-interpol:enable-interpol-syntax)
 
 (defun check-edit-response (title xml)
   "Checks for the expected 'success' message
