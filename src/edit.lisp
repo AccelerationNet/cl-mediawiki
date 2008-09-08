@@ -7,8 +7,7 @@
   (match-response-with-error-reporting
       (`("api"
 	 NIL
-	 ("edit"
-	  #T(list &rest ?alist)))
+	 ("edit" ?alist))
 	xml)
     (assert (string-equal "success" (attribute-value "result" alist))
 	    (alist) "Failed to create page: '~a' ~a  ~a ~%~%~A" title (attribute-value "result" alist) (string-equal "success "(attribute-value "result" alist)) alist)

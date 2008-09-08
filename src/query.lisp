@@ -1,5 +1,6 @@
 (in-package :cl-mediawiki)
 
+
 (defun get-page-content (title)
   (let ((parameters
 	 (make-parameters
@@ -16,7 +17,7 @@
 			      ()
 			      ("pages"
 			       ()
-			       ("page" ,#t(list ("title" ?title) &rest _)
+			       ("page" ,(unify:make-template 'list '(("title" ?title) &rest _))
 				       ("revisions"
 					NIL
 					("rev" NIL ?content))))))
@@ -71,9 +72,8 @@
 			      NIL
 			      ("pages"
 			       NIL
-			       ("page" ,#T(list &rest ?alist)))))
+			       ("page" ?alist))))
 			    sxml)
-			     
 	       (make-instance
 		'token-bag
 		:tokens

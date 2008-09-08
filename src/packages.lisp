@@ -4,6 +4,10 @@
     (:use :common-lisp :iterate)
   (:nicknames :cl-mediawiki)
   (:export
+   ;; main
+   #:mediawiki
+   #:*mediawiki*
+   #:with-mediawiki
    ;; query
    #:get-page-content
    #:get-action-tokens

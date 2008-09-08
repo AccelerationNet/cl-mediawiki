@@ -60,6 +60,7 @@
 
 (define-condition match-error (error)
   ((obj :accessor obj :initarg :obj :initform nil)
+   (match-against :accessor match-against :initarg :match-against :initform nil)
    (message :accessor message :initarg :message :initform nil)))
 
 (defmacro match-response-with-error-reporting ((match-form object)&body body)
@@ -74,13 +75,14 @@
 	(,obj-sym)
 	(`("api"
 	   NIL
-	   ("error"
-	    ,#T(list &rest ?err)))
+	   ("error" ?err))
 	  (error 'media-wiki-error :obj ,obj-sym
 				   :code (attribute-value "code" err)
 				   :message (attribute-value "info" err)))
 	(,match-form
 	 ,@body)
 	(T
-	 (error 'match-error :message "Error matching" :obj ,obj-sym))
+	 (error 'match-error :message "Error matching"
+			     :obj ,obj-sym
+			     :match-against ,match-form))
 	))))
