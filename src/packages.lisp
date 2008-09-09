@@ -1,7 +1,7 @@
 ;; -*- lisp -*-
 
 (defpackage :net.acceleration.cl-mediawiki
-    (:use :common-lisp :iterate)
+    (:use :common-lisp )
   (:nicknames :cl-mediawiki)
   (:export
    ;; main
