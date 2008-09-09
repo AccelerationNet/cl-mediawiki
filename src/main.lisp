@@ -10,8 +10,8 @@
 
 (defmacro with-mediawiki ((obj) &body body)
   `(let ((*mediawiki* ,(typecase obj
-			 (list obj)
-			 (string `(make-instance 'mediawiki :url ,obj)))))
+			 (string `(make-instance 'mediawiki :url ,obj))
+			 (T obj))))
      ,@body
      ))
 

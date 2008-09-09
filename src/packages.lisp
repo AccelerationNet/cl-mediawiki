@@ -16,4 +16,5 @@
    #:append-text-to-page
    #:add-new-page-section
    #:create-page
+   #:regex-replace-all
    ))

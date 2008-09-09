@@ -11,18 +11,21 @@
     (flet ((page-content (?title sxml)
 	     "Accepts sxml and pulls out the page content from it"
 	     (declare (ignorable ?title)) ;; supress compiler noise
-	     (unify:match (`("api"
-			     ()
-			     ("query"
-			      ()
-			      ("pages"
-			       ()
-			       ("page" ,(unify:make-template 'list '(("title" ?title) &rest _))
-				       ("revisions"
-					NIL
-					("rev" NIL ?content))))))
-			    sxml)
-	       content
+	     (unify:match-case (sxml)
+	      (`("api"
+		 ()
+		 ("query"
+		  ()
+		  ("pages"
+		   ()
+		   ("page" ,(unify:make-template 'list '(("title" ?title) &rest _))
+			   ("revisions"
+			    NIL
+			    ("rev" NIL ?content))))))
+		content
+		)
+	      (T nil)
+	       
 	       )))
       (page-content
        title 

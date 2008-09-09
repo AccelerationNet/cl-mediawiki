@@ -129,3 +129,15 @@
      (parse-api-response-to-sxml
       (make-api-request parameters :method :post)))
     ))
+
+(defun regex-replace-all (regex target-page replacement  &key default-content (summary "cl-mediawiki:regex-replace-all"))
+  "Does a regex find/replace on the target page.
+   If the page is empty, will set to default content if provided "
+  (let ((content (get-page-content target-page)))
+    (set-page-content target-page 
+     (if content
+	 (cl-ppcre:regex-replace-all regex content replacement)
+	 default-content)
+     :no-create (null default-content)
+     :summary summary)))
+

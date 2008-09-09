@@ -14,4 +14,4 @@
 				     (:file "main")
 				     (:file "query" :depends-on ("packages" "main"))
 				     (:file "edit" :depends-on ("query")))))
-  :depends-on (:cxml :drakma :cl-unification))
+  :depends-on (:cxml :drakma :cl-unification :cl-ppcre))
