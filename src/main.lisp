@@ -15,18 +15,25 @@
      ,@body
      ))
 
-(defun make-api-request (api-params &key (basic-authorization (auth *mediawiki* )) (force-ssl T) (method :get))
-  (let ((full-url (format nil "~a/api.php" (url *mediawiki*))))
+(defun make-api-request (api-params &key (basic-authorization (auth *mediawiki* )) (force-ssl nil force-ssl-p) (method :get))
+  ;; force-ssl should either be whats passed in, or if nothing is passed in
+  ;; check to see what protocol we used to connect to the server
+  (let ((force-ssl (if force-ssl-p
+		       force-ssl
+		       (eq 0 (search "https://" (url *mediawiki*) :test #'char-equal ))
+		       ))
+	(full-url (format nil "~a/api.php" (url *mediawiki*))))
     (push '("format" . "xml") api-params)
     (multiple-value-bind (content status headers uri stream must-close status-word)
-	(drakma:http-request
-	 full-url
-	 :method method
-	 :basic-authorization basic-authorization
-	 :force-ssl force-ssl
-	 :parameters api-params
-	 :cookie-jar (cookie-jar *mediawiki*)
-	 )
+	(let ((drakma:*drakma-default-external-format* :utf-8))
+	  (drakma:http-request
+	   full-url
+	   :method method
+	   :basic-authorization basic-authorization
+	   :force-ssl force-ssl
+	   :parameters api-params
+	   :cookie-jar (cookie-jar *mediawiki*) 
+	   ))
       (declare (ignore headers uri stream must-close status-word))
       (values content status))))
 
