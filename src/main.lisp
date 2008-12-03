@@ -16,6 +16,7 @@
      ))
 
 (defun make-api-request (api-params &key (basic-authorization (auth *mediawiki* )) (force-ssl nil force-ssl-p) (method :get))
+  "Calls the media wiki api providing the specified parameters"
   ;; force-ssl should either be whats passed in, or if nothing is passed in
   ;; check to see what protocol we used to connect to the server
   (let ((force-ssl (if force-ssl-p
@@ -38,14 +39,21 @@
       (values content status))))
 
 (defun make-parameters (params)
+  "Takes a list of bindings (:key :val) and prepares them for transit
+   by converting them to strings
+   (if either the pair is nil or the value is nil, we drop that param)
+  "
   (loop for binding in params
-	when binding
+	;; only collect when we have a key and value
+	when (and binding (cadr binding))
 	  collecting
        (destructuring-bind (key val) binding
+	 ;; grabs a downcased key and its value (downcased if symbol)
+	 ;; as a pair of strings
 	 (cons (format nil "~(~a~)" key)
 	       (typecase val
 		 (symbol (format nil "~(~a~)" val))
-		 (string val))))))
+		 (T (princ-to-string val)))))))
 
 (defun parse-api-response-to-sxml (content)
   (cxml:parse content (cxml-xmls:make-xmls-builder) :validate nil))
