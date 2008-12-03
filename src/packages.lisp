@@ -7,6 +7,7 @@
    ;; main
    #:mediawiki
    #:*mediawiki*
+   #:*default-external-format*
    #:with-mediawiki
    ;; query
    #:get-page-content

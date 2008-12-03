@@ -15,6 +15,9 @@
      ,@body
      ))
 
+(defvar *default-external-format* :utf-8
+  "sets as the drakma default coding system")
+
 (defun make-api-request (api-params &key (basic-authorization (auth *mediawiki* )) (force-ssl nil force-ssl-p) (method :get))
   "Calls the media wiki api providing the specified parameters"
   ;; force-ssl should either be whats passed in, or if nothing is passed in
@@ -26,7 +29,7 @@
 	(full-url (format nil "~a/api.php" (url *mediawiki*))))
     (push '("format" . "xml") api-params)
     (multiple-value-bind (content status headers uri stream must-close status-word)
-	(let ((drakma:*drakma-default-external-format* :utf-8))
+	(let ((drakma:*drakma-default-external-format* *default-external-format*))
 	  (drakma:http-request
 	   full-url
 	   :method method
