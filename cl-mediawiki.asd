@@ -10,8 +10,10 @@
 (defsystem :cl-mediawiki
   :description "A tool to help talk to mediawiki's api."
   :components ((:module :src
+			:serial T
 			:components ((:file "packages")
-				     (:file "main")
-				     (:file "query" :depends-on ("packages" "main"))
-				     (:file "edit" :depends-on ("query")))))
+				     (:file "util" )
+				     (:file "main" )
+				     (:file "query" )
+				     (:file "edit"))))
   :depends-on (:cxml :drakma :cl-unification :cl-ppcre))
