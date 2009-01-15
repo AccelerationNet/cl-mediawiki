@@ -144,6 +144,24 @@ Parameters:
  Returns: a token bag (or list of them if you asked for multiple pages) 
 ")
 
+(define-proxy get-page-info
+    :core ((action query)
+	   (prop info))
+  :req (titles)
+  :processor
+  (lambda (sxml)
+    (convert-sxml-attribs-to-alist
+     (second (first (find-nodes-by-name "page" sxml))
+    )))
+  :doc
+    "Gets the info for a given page as an alist
+
+Parameters:
+  titles - the title of the page we wish to retrieve the info of
+
+ Returns: an alist of attributes about the page
+")
+
 
 
 
