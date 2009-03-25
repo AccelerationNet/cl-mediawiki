@@ -18,4 +18,5 @@
    #:add-new-page-section
    #:create-page
    #:regex-replace-all
-   #:get-page-info))
+   #:get-page-info
+   #:pages-that-embed))

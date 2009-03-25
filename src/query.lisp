@@ -88,6 +88,45 @@ Parameters:
  Returns: a string with the given page content
 ")
 
+(define-proxy pages-that-embed
+    :core ((action query)
+	   (list embeddedin))
+  :req (eititle)
+  :props (eicontinue einamespace eifilterredir eilimit)
+  :processor
+  (lambda (sxml)
+    (let ((rows (find-nodes-by-name "ei" sxml))
+	  (continuation (destructuring-bind (_1 ((_2 continuation)))
+			    (first (find-nodes-by-name "embeddedin"
+						       (find-nodes-by-name "query-continue" sxml)))
+			  (declare (ignore _1 _2))
+			  continuation))
+	  titles)
+      (loop for row in rows
+	    do (destructuring-bind (_1 ((_2 title) &rest _3)) row
+		   (declare (ignore _1 _2 _3))
+		   (push title titles)))
+      (values (nreverse titles) continuation)))
+  :doc
+    "List pages that embed a given template or other page
+
+Parameters:
+  eititle        - Title to search. If null, titles= parameter will be used instead, but will be obsolete soon.
+  eicontinue     - When more results are available, use this to continue.
+  einamespace    - The namespace to enumerate.
+                   Values (separate with '|'): 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 100, 101, 102, 103
+  eifilterredir  - How to filter for redirects
+                   One value: all, redirects, nonredirects
+                   Default: all
+  eilimit        - How many total pages to return.
+                   No more than 500 (5000 for bots) allowed.
+                   Default: 10
+
+ Examples: (pages-that-embed \"Template:Client\")
+
+ Returns: a list of pagetitles and a continuation (if there is one)
+")
+
 (defclass token-bag ()
   ((page-attributes :accessor page-attributes :initarg :page-attributes :initform nil
        :documentation "An alist of page attributes returned by the api")
