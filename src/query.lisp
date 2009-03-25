@@ -95,12 +95,12 @@ Parameters:
   :props (eicontinue einamespace eifilterredir eilimit)
   :processor
   (lambda (sxml)
-    (let ((rows (find-nodes-by-name "ei" sxml))
-	  (continuation (destructuring-bind (_1 ((_2 continuation)))
-			    (first (find-nodes-by-name "embeddedin"
-						       (find-nodes-by-name "query-continue" sxml)))
-			  (declare (ignore _1 _2))
-			  continuation))
+    (let* ((rows (find-nodes-by-name "ei" sxml))
+	   (c-blob (first (find-nodes-by-name "embeddedin" (find-nodes-by-name "query-continue" sxml))))
+	   (continuation (when c-blob
+			   (destructuring-bind (_1 ((_2 continuation))) c-blob
+			     (declare (ignore _1 _2))
+			     continuation)))
 	  titles)
       (loop for row in rows
 	    do (destructuring-bind (_1 ((_2 title) &rest _3)) row
