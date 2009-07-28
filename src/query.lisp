@@ -201,6 +201,86 @@ Parameters:
  Returns: an alist of attributes about the page
 ")
 
+(define-proxy recent-changes
+    :core ((action query)
+	   (list recentchanges))
+  :req ()
+  :props (rcstart  rcend rcdir rcnamespace  rctitles  (rcprop "user|comment|title|timestamp|ids")  rcshow  rclimit  rctype)
+  :processor
+  (lambda (sxml)
+    (mapcar #'(lambda (n)
+		 (convert-sxml-attribs-to-alist
+		  (cadr n)))
+      (cddr (first (cddr (find "query" (cddr sxml)
+			       :key #'first
+			       :test #'string-equal)))))
+    ;sxml
+    )
+  :doc
+    "Enumerates the recent changes
+
+Parameters:
+  rcstart        - The timestamp to start enumerating from.
+  rcend          - The timestamp to end enumerating.
+  rcdir          - In which direction to enumerate.
+                   One value: newer, older
+                   Default: older
+  rcnamespace    - Filter log entries to only this namespace(s)
+                   Values (separate with '|'): 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 100, 101, 102, 103
+  rctitles       - Filter log entries to only these page titles
+  rcprop         - Include additional pieces of information
+                   Values (separate with '|'): user, comment, flags, timestamp, title, ids, sizes, redirect, patrolled
+                   Default: title|timestamp|ids
+  rcshow         - Show only items that meet this criteria.
+                   For example, to see only minor edits done by logged-in users, set show=minor|!anon
+                   Values (separate with '|'): minor, !minor, bot, !bot, anon, !anon, redirect, !redirect, patrolled, !patrolled
+  rclimit        - How many total changes to return.
+                   No more than 500 (5000 for bots) allowed.
+                   Default: 10
+  rctype         - Which types of changes to show.
+                   Values (separate with '|'): edit, new, log
+
+ Returns: 
+")
+
+(define-proxy user-contribs
+    :core ((action query)
+	   (list usercontribs))
+  :req (ucuser)
+  :props (uclimit ucstart ucend ucuserprefix ucdir ucnamespace (ucprop "comment|title|timestamp|ids") ucshow)
+  :processor
+  (lambda (sxml)
+    (mapcar #'(lambda (n)
+		 (convert-sxml-attribs-to-alist
+		  (cadr n)))
+      (cddr (first (cddr (find "query" (cddr sxml)
+			       :key #'first
+			       :test #'string-equal)))))
+    ;sxml
+    )
+  :doc
+    "  Get all edits by a user
+Parameters:
+  uclimit        - The maximum number of contributions to return.
+                   No more than 500 (5000 for bots) allowed.
+                   Default: 10
+  ucstart        - The start timestamp to return from.
+  ucend          - The end timestamp to return to.
+  ucuser         - The user to retrieve contributions for.
+  ucuserprefix   - Retrieve contibutions for all users whose names begin with this value. Overrides ucuser.
+  ucdir          - The direction to search (older or newer).
+                   One value: newer, older
+                   Default: older
+  ucnamespace    - Only list contributions in these namespaces
+                   Values (separate with '|'): 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 100, 101, 102, 103
+  ucprop         - Include additional pieces of information
+                   Values (separate with '|'): ids, title, timestamp, comment, flags
+                   Default: ids|title|timestamp|flags|comment
+  ucshow         - Show only items that meet this criteria, e.g. non minor edits only: show=!minor
+                   Values (separate with '|'): minor, !minor
+
+")
+
 
 
 

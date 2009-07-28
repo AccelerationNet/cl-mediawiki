@@ -12,6 +12,8 @@
    ;; query
    #:get-page-content
    #:get-action-tokens
+   #:recent-changes
+   #:user-contribs
    ;; EDIT
    #:set-page-content
    #:append-text-to-page
