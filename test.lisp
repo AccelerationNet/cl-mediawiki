@@ -16,4 +16,7 @@
   (cl-mediawiki:get-page-info "Pigment" ))
 
 (cl-mediawiki:with-mediawiki ("http://en.wikipedia.org/w")
+  (cl-mediawiki:recent-changes))
+
+(cl-mediawiki:with-mediawiki ("http://en.wikipedia.org/w")
   (cl-mediawiki:user-contribs "bobbysmith007"))
