@@ -18,30 +18,29 @@
 		    package))
     (symbol str)))
 
-(defun map-tree (fn &rest trees)
+(defun map-sxml-tree (fn tree)
   "Do a depth first traversal of some set of trees calling fn on every non-nil element. "
-  (when trees
-    (dolist (n trees)
-      (etypecase n
-	(null)
-	(atom (funcall fn n))
-	(list
-	   (funcall fn n)
-	   (apply #'map-tree fn n))))))
+  (when tree
+    (labels ((rec (tree)
+	       (funcall fn tree)
+	       (dolist (n (cddr tree))
+		 (when (listp n)
+		   (rec n)))))
+      (rec tree))))
 
-(defun find-tree (pred &rest trees)
+(defun find-tree (pred tree)
   "find a tree based on a predicate"
   (let ((results))
     (flet ((handler (node)
 	     (when (funcall pred node)
 	       (push node results))))
-      (map-tree #'handler trees)
+      (map-sxml-tree #'handler tree)
       (nreverse results))))
 
-(defun find-nodes-by-name (name &rest trees)
+(defun find-nodes-by-name (name tree)
   "find all sxml nodes with a given name "
   (find-tree (lambda (n)
 	       (string-equal
 		(when (and (listp n) (stringp (car n)))
-		  (car n)) name)) trees))
+		  (car n)) name)) tree))
 
