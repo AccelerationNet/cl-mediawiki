@@ -157,13 +157,14 @@ Parameters:
 
 (define-proxy get-action-tokens
     :core ((action query)
-	   (prop info))
+	   (rvprop timestamp)
+	   (prop "info|revisions"))
   :req (titles)
   :props ((intoken :edit))
   :processor
   (lambda (sxml)
     (let ((pages (find-nodes-by-name "page" sxml)))
-      (let ((result (loop for (page alist) in pages
+      (let ((result (loop for (page alist . children) in pages
 			  collecting
 		       (make-instance
 			    'token-bag
@@ -173,7 +174,15 @@ Parameters:
 				  collecting
 			       (cons token
 				     (sxml-attribute-value (format nil "~atoken" token) alist)))
-			    :timestamp (sxml-attribute-value "touched" alist)))))
+			    ;; The timestamp on the tokens bag may be incorrect, its better to
+			    ;; look at the revision history for the correct one
+			    :timestamp (let ((rev (first (loop for child in children
+							       for res = (find-nodes-by-name "rev" child)
+							       until res
+							       finally (return res)))))
+					 (if rev
+					   (sxml-attribute-value "timestamp" (second rev))
+					   (sxml-attribute-value "touched" alist)))))))
 	(if (eq 1 (length result)) (car result) result))))
   :doc
     "Gets the tokens necessary for perform edits.
