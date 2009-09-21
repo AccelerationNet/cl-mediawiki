@@ -73,6 +73,7 @@ Parameters:
 	   (prop revisions)
 	   (rvprop content))
   :req (titles)
+  :props (rvsection)
   :processor
   (lambda (sxml)
     (let ((rows (find-nodes-by-name "rev" sxml)))  
@@ -82,6 +83,9 @@ Parameters:
 
 Parameters:
   titles - the title of the page
+
+  rvsection      - only retrieve the content of this section
+                   (a number indicating which section, not the section name)
 
  Examples: (get-page-content \"Physics\")
 
