@@ -20,7 +20,7 @@
 	   (summary  "cl-mediawiki:create-page")
 	   (override nil))
   "Creates a new wiki page
-   If override is true, replace the existing page with the text passed in
+   If override is true, replace the existing page with the text passed in (if the page already exists)
   "
   (let* ((tokens (get-action-tokens title))
 	 (parameters
@@ -65,7 +65,7 @@
     (title text &key
 	   no-create
 	   (summary  "cl-mediawiki:append-text-to-page"))
-  "appends the text the the end of the page (will create the page if neccessary)"
+  "appends the text the the end of the page (will create the page if neccessary, unless no-create is passed)"
   (let* ((tokens (get-action-tokens title))
 	 (parameters
 	  (make-parameters
@@ -88,7 +88,7 @@
     (title text &key
 	   (summary  "cl-mediawiki:prepend-text-to-page")
 	   no-create)
-  "Adds the text to the beginning of the page
+  "Adds the text to the beginning of the page named title
    (will create the page if neccessary unless no-create is true)"
   (let* ((tokens (get-action-tokens title)) 
 	 (parameters
@@ -111,7 +111,13 @@
 (defun set-page-content
     (title text &key no-create
 	   (summary  "cl-mediawiki:set-page-content"))
-  "sets the text of a wiki page to the specified text"
+  "sets the text of a wiki page 'title' to the specified 'text',
+
+     title: The wiki page to set the content of
+     text: The new content that the wiki page should have
+     no-create:, do not create the wiki page if it does not exist
+     summary: The comment associated with changing the page content
+    "
   (let* ((tokens (get-action-tokens title))
 	 (parameters
 	  (make-parameters
@@ -131,8 +137,8 @@
     ))
 
 (defun regex-replace-all (regex target-page replacement  &key default-content (summary "cl-mediawiki:regex-replace-all"))
-  "Does a regex find/replace on the target page.
-   If the page is empty, will set to default content if provided "
+  "Does a regex find/replace on the target page. If the page is empty, will set to default content if provided
+    Works by calling get-content then regex-replacing on the content, then calling set-content "
   (let ((content (get-page-content target-page)))
     (set-page-content target-page 
      (if content
