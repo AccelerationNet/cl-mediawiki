@@ -10,6 +10,7 @@
    #:*default-external-format*
    #:with-mediawiki
    ;; query
+   #:login
    #:get-page-content
    #:get-action-tokens
    #:recent-changes

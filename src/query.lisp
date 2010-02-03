@@ -1,7 +1,7 @@
 ;; See ../LICENSE  for info 
 (in-package :cl-mediawiki)
 
-(defmacro define-proxy (name &key core req based-on props doc (processor 'identity))
+(defmacro define-proxy (name &key core req based-on props doc (processor 'identity) (method :GET))
   "Defines a function with NAME with REQ required parameters. The
 symbols in the BASED-ON and PROPS lists are concatenated with pairs
 from the CORE list and passed to the MAKE-PARAMETERS function."
@@ -18,7 +18,29 @@ from the CORE list and passed to the MAKE-PARAMETERS function."
 					(concatenate 'list req props based-on ))))))
 	 ;(print ,par-sym)
 	 (funcall #',processor
-		  (parse-api-response-to-sxml (make-api-request ,par-sym)))))))
+		  (parse-api-response-to-sxml (make-api-request ,par-sym :method ,method)))))))
+
+
+(define-proxy login
+    :core ((action login))
+    :req (lgname lgpassword)
+    :props (lgdomain)
+    :method :POST
+    :doc
+    "
+  This module is used to login and get the authentication tokens. 
+  In the event of a successful log-in, a cookie will be attached
+  to your session. In the event of a failed log-in, you will not 
+  be able to attempt another log-in through this method for 5 seconds.
+  This is to prevent password guessing by automated password crackers.
+
+This module only accepts POST requests.
+Parameters:
+  lgname         - User Name
+  lgpassword     - Password
+  lgdomain       - Domain (optional)
+Example:
+  api.php?action=login&lgname=user&lgpassword=password ")
 
 
 (define-proxy list-category-members
