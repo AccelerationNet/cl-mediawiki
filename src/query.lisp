@@ -1,5 +1,25 @@
-;; See ../LICENSE  for info 
+;; Copyright (c) 2008 Accelerated Data Works, Russ Tyndall
+
+;; Permission is hereby granted, free of charge, to any person
+;; obtaining a copy of this software and associated documentation files
+;; (the "Software"), to deal in the Software without restriction,
+;; including without limitation the rights to use, copy, modify, merge,
+;; publish, distribute, sublicense, and/or sell copies of the Software,
+;; and to permit persons to whom the Software is furnished to do so,
+;; subject to the following conditions:
+
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+;; EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+;; MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+;; IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+;; CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+;; TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
 (in-package :cl-mediawiki)
+
+;; --------------------------------------------------------
 
 (defmacro define-proxy (name &key core req based-on props doc (processor 'identity) (method :GET))
   "Defines a function with NAME with REQ required parameters. The
@@ -18,8 +38,9 @@ from the CORE list and passed to the MAKE-PARAMETERS function."
 					(concatenate 'list req props based-on ))))))
 	 ;(print ,par-sym)
 	 (funcall #',processor
-		  (parse-api-response-to-sxml (make-api-request ,par-sym :method ,method)))))))
+		  (parse-api-response (make-api-request ,par-sym :method ,method)))))))
 
+;; --------------------------------------------------------
 
 (define-proxy login
     :core ((action login))
@@ -27,12 +48,11 @@ from the CORE list and passed to the MAKE-PARAMETERS function."
     :props (lgdomain)
     :method :POST
     :doc
-    "
-  This module is used to login and get the authentication tokens. 
-  In the event of a successful log-in, a cookie will be attached
-  to your session. In the event of a failed log-in, you will not 
-  be able to attempt another log-in through this method for 5 seconds.
-  This is to prevent password guessing by automated password crackers.
+    "This module is used to login and get the authentication tokens.
+  In the event of a successful log-in, a cookie will be attached to
+  your session. In the event of a failed log-in, you will not be able
+  to attempt another log-in through this method for 5 seconds.  This
+  is to prevent password guessing by automated password crackers.
 
 This module only accepts POST requests.
 Parameters:
@@ -40,8 +60,39 @@ Parameters:
   lgpassword     - Password
   lgdomain       - Domain (optional)
 Example:
-  api.php?action=login&lgname=user&lgpassword=password ")
+  (login \"user\" \"password\")
+ ")
 
+;; --------------------------------------------------------
+
+(define-proxy userinfo
+    :core ((action query)
+	   (meta userinfo))
+    :req ()
+    :props (uiprop)
+    :processor 
+    (lambda (resp)
+      (get-value resp :QUERY :USERINFO))
+    :doc
+    "Get information about the current user
+
+This module requires read rights.
+Parameters:
+  uiprop         - What pieces of information to include
+                     blockinfo  - tags if the current user is blocked, by whom, and for what reason
+                     hasmsg     - adds a tag 'message' if the current user has pending messages
+                     groups     - lists all the groups the current user belongs to
+                     rights     - lists all the rights the current user has
+                     changeablegroups - lists the groups the current user can add to and remove from
+                     options    - lists all preferences the current user has set
+                     editcount  - adds the current user's edit count
+                     ratelimits - lists all rate limits applying to the current user
+                   Values (separate with '|'): blockinfo, hasmsg, groups, rights, changeablegroups, options, preferencestoken, editcount, ratelimits, email
+Examples:
+  api.php?action=query&meta=userinfo
+  api.php?action=query&meta=userinfo&uiprop=blockinfo|groups|rights|hasmsg")
+
+;; --------------------------------------------------------
 
 (define-proxy list-category-members
     :core ((action query)
@@ -51,11 +102,10 @@ Example:
 		     meta generator redirects indexpageids)
   :props (cmprop cmnamespace cmcontinue cmlimit cmsort cmdir cmstart cmend cmstartsortkey cmendsortkey)
   :processor
-  (lambda (sxml)
-    (let ((rows (find-nodes-by-name "cm" sxml)))  
-      (loop for row in rows
-	    collecting (loop for (attr val) in (second row)
-			     collecting (list (symbolize-string attr) val) ))) )
+  (lambda (resp)
+    (values-list (list
+		  (get-value resp :query :categorymembers)
+		  (get-value resp :query-continue :categorymembers :cmcontinue))))
   :doc
     "List all pages in a given category.
 
@@ -82,25 +132,31 @@ Parameters:
      (list-category-members \"Category:Physics\")
 
    Get page info about first 10 pages in [[Category:Physics]]:
-     (list-category-members \"Category:Physics\" :prop 'info)
+     (list-category-members \"Category:Physics\" :cmprop 'title)
 
-  Returns a list of alists, each representing a CategoryMember
-    alist keys are: :title :ns :pageid
-"
-    )
+  Returns two values:
 
+    1. a list of pages with keys (:PAGEID, :NS, :TITLE)
+
+    2. a value to pass as CMCONTINUE parameter to continue retrieving
+    list of categories
+")
+
+;; --------------------------------------------------------
 
 (define-proxy get-page-content
     :core ((action query)
 	   (prop revisions)
-	   (rvprop content))
-  :req (titles)
-  :props (rvsection)
-  :processor
-  (lambda (sxml)
-    (let ((rows (find-nodes-by-name "rev" sxml)))  
-      (third (first rows))))
-  :doc
+	   (rvprop "content|timestamp"))
+    :req (titles)
+    :props (rvsection)
+    :processor
+    (lambda (resp)
+      (values-list (list
+		    (get-value resp :query :pages #'first #'cdr :revisions #'first :*)
+		    (get-value resp :query :pages #'first #'cdr :revisions #'first :timestamp)
+		    )))
+    :doc
     "Get the content for a given page
 
 Parameters:
@@ -111,31 +167,21 @@ Parameters:
 
  Examples: (get-page-content \"Physics\")
 
- Returns: a string with the given page content
-")
+ Returns: a string with the given page content ")
+
+;; --------------------------------------------------------
 
 (define-proxy pages-that-embed
     :core ((action query)
 	   (list embeddedin))
-  :req (eititle)
-  :props (eicontinue einamespace eifilterredir eilimit)
-  :processor
-  (lambda (sxml)
-    (let* ((rows (find-nodes-by-name "ei" sxml))
-	   (c-blob (first (find-nodes-by-name
-			   "embeddedin"
-			   (first (find-nodes-by-name "query-continue" sxml)))))
- 	   (continuation (when c-blob
- 			   (destructuring-bind (_1 ((_2 continuation))) c-blob
- 			     (declare (ignore _1 _2))
- 			     continuation)))
-	  titles)
-      (loop for row in rows
-	    do (destructuring-bind (_1 ((_2 title) &rest _3)) row
-		   (declare (ignore _1 _2 _3))
-		   (push title titles)))
-      (values (nreverse titles) continuation)))
-  :doc
+    :req (eititle)
+    :props (eicontinue einamespace eifilterredir eilimit)
+    :processor
+    (lambda (resp)
+      (values-list (list
+		    (get-value resp :query :embeddedin)
+		    (get-value resp :query-continue :embeddedin :eicontinue))))
+    :doc
     "List pages that embed a given template or other page
 
 Parameters:
@@ -150,64 +196,70 @@ Parameters:
                    No more than 500 (5000 for bots) allowed.
                    Default: 10
 
- Examples: (pages-that-embed \"Template:Client\")
+ Examples: (pages-that-embed \"Template:Stub\")
 
- Returns: a list of pagetitles and a continuation (if there is one)
+ Returns two values:
+
+   1. a list of pages with keys (:PAGEID :NS :TITLE)
+
+   2. a value to pass to the EICONTINUE
 ")
 
+;; --------------------------------------------------------
+
 (defclass token-bag ()
-  ((page-attributes :accessor page-attributes :initarg :page-attributes :initform nil
-       :documentation "An alist of page attributes returned by the api")
-   (timestamp :accessor timestamp :initarg :timestamp :initform nil)
-   (tokens :accessor tokens :initarg :tokens :initform nil
-	   :documentation "either a single token, or an
-            alist mapping type to value" )))
+  ((page-attributes
+    :accessor page-attributes
+    :initarg :page-attributes
+    :initform nil
+    :documentation "An alist of page attributes returned by the api")
+   (timestamp
+    :accessor timestamp
+    :initarg :timestamp
+    :initform nil)
+   (tokens
+    :accessor tokens
+    :initarg :tokens
+    :initform nil
+    :documentation "either a single token, or an alist mapping type to value" )))
+
+;; --------------------------------------------------------
 
 (defmethod print-object ((token-bag token-bag) stream)
   (with-accessors ((timestamp timestamp)
 		   (tokens tokens)) token-bag
     (format stream "#<Token-bag ~a ~a>" timestamp tokens)))
 
+;; --------------------------------------------------------
+
 (defmethod edit-token ((token-bag token-bag))
   (cdr (assoc :edit (tokens token-bag))))
+
+;; --------------------------------------------------------
 
 (defmethod move-token ((token-bag token-bag))
   (cdr (assoc :move (tokens token-bag))))
 
+;; --------------------------------------------------------
+
 (defmethod delete-token ((token-bag token-bag))
   (cdr (assoc :delete (tokens token-bag) )))
+
+;; --------------------------------------------------------
 
 (define-proxy get-action-tokens
     :core ((action query)
 	   (rvprop timestamp)
 	   (prop "info|revisions"))
-  :req (titles)
-  :props ((intoken :edit))
-  :processor
-  (lambda (sxml)
-    (let ((pages (find-nodes-by-name "page" sxml)))
-      (let ((result (loop for (page alist . children) in pages
-			  collecting
-		       (make-instance
-			    'token-bag
-			    :page-attributes (convert-sxml-attribs-to-alist alist)
-			    :tokens
-			    (loop for token in (ensure-list intoken)
-				  collecting
-			       (cons token
-				     (sxml-attribute-value (format nil "~atoken" token) alist)))
-			    ;; The timestamp on the tokens bag may be incorrect, its better to
-			    ;; look at the revision history for the correct one
-			    :timestamp (let ((rev (first (loop for child in children
-							       for res = (find-nodes-by-name "rev" child)
-							       until res
-							       finally (return res)))))
-					 (if rev
-					   (sxml-attribute-value "timestamp" (second rev))
-					   (sxml-attribute-value "touched" alist)))))))
-	(if (eq 1 (length result)) (car result) result))))
-  :doc
-    "Gets the tokens necessary for perform edits.
+    :req (titles)
+    :props ((intoken :edit))
+    :processor
+    (lambda (res)
+      (if (= 1 (length (get-value res :query :pages)))
+	  (cdr (first (get-value res :query :pages)))
+	  (map 'list #'cdr  (get-value res :query :pages))))
+    :doc
+    "Gets the tokens necessary to perform edits.
 
 Parameters:
   titles - the title of the page we wish to edit
@@ -217,43 +269,38 @@ Parameters:
            (get-action-tokens \"Physics\" :intoken '(:edit :move :delete))
            (get-action-tokens '(\"Main Page\" \"User:Russ\") :intoken '(:move :edit :delete :protect))
 
- Returns: a token bag (or list of them if you asked for multiple pages) 
+ Returns: if one page is requested, returns an assoc list with page
+ info; otherwise returns a list of assoc lists.
 ")
+
+;; --------------------------------------------------------
 
 (define-proxy get-page-info
     :core ((action query)
 	   (prop info))
-  :req (titles)
-  :processor
-  (lambda (sxml)
-    (convert-sxml-attribs-to-alist
-     (second (first (find-nodes-by-name "page" sxml))
-    )))
-  :doc
+    :req (titles)
+    :processor
+    (lambda (res)
+      (get-value res :query :pages))
+    :doc
     "Gets the info for a given page as an alist
 
 Parameters:
   titles - the title of the page we wish to retrieve the info of
 
- Returns: an alist of attributes about the page
-")
+ Returns: an alist of attributes about the pages. ")
+
+;; --------------------------------------------------------
 
 (define-proxy recent-changes
     :core ((action query)
 	   (list recentchanges))
-  :req ()
-  :props (rcstart  rcend rcdir rcnamespace  rctitles  (rcprop "user|comment|title|timestamp|ids")  rcshow  rclimit  rctype)
-  :processor
-  (lambda (sxml)
-    (mapcar #'(lambda (n)
-		 (convert-sxml-attribs-to-alist
-		  (cadr n)))
-      (cddr (first (cddr (find "query" (cddr sxml)
-			       :key #'first
-			       :test #'string-equal)))))
-    ;sxml
-    )
-  :doc
+    :req ()
+    :props (rcstart  rcend rcdir rcnamespace  rctitles  (rcprop "user|comment|title|timestamp|ids")  rcshow  rclimit  rctype)
+    :processor
+    (lambda (res)
+      (get-value res :query :recentchanges))
+    :doc
     "Enumerates the recent changes
 
 Parameters:
@@ -280,22 +327,17 @@ Parameters:
  Returns: 
 ")
 
+;; --------------------------------------------------------
+
 (define-proxy user-contribs
     :core ((action query)
 	   (list usercontribs))
-  :req (ucuser)
-  :props (uclimit ucstart ucend ucuserprefix ucdir ucnamespace (ucprop "comment|title|timestamp|ids") ucshow)
-  :processor
-  (lambda (sxml)
-    (mapcar #'(lambda (n)
-		 (convert-sxml-attribs-to-alist
-		  (cadr n)))
-      (cddr (first (cddr (find "query" (cddr sxml)
-			       :key #'first
-			       :test #'string-equal)))))
-    ;sxml
-    )
-  :doc
+    :req (ucuser)
+    :props (uclimit ucstart ucend ucuserprefix ucdir ucnamespace (ucprop "comment|title|timestamp|ids") ucshow)
+    :processor
+    (lambda (res)
+      (get-value res :query :usercontribs))
+    :doc
     "  Get all edits by a user
 Parameters:
   uclimit        - The maximum number of contributions to return.
@@ -315,26 +357,6 @@ Parameters:
                    Default: ids|title|timestamp|flags|comment
   ucshow         - Show only items that meet this criteria, e.g. non minor edits only: show=!minor
                    Values (separate with '|'): minor, !minor
-
 ")
 
-
-
-
-;; Copyright (c) 2008 Accelerated Data Works, Russ Tyndall
-
-;; Permission is hereby granted, free of charge, to any person
-;; obtaining a copy of this software and associated documentation files
-;; (the "Software"), to deal in the Software without restriction,
-;; including without limitation the rights to use, copy, modify, merge,
-;; publish, distribute, sublicense, and/or sell copies of the Software,
-;; and to permit persons to whom the Software is furnished to do so,
-;; subject to the following conditions:
-
-;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-;; EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-;; MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-;; IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-;; CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-;; TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+;; EOF
