@@ -42,6 +42,5 @@
    #:prepend-text-to-page
    #:add-new-page-section
    #:create-page
-   #:regex-replace-all
    #:get-page-info
    #:pages-that-embed))

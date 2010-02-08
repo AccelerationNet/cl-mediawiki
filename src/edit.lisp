@@ -161,26 +161,4 @@ in (if the page already exists)
 			  (make-api-request parameters
 					    :method :POST)))))
 
-;; --------------------------------------------------------
-
-(defun regex-replace-all (regex target-page replacement &key
-			  default-content
-			  (summary "cl-mediawiki:regex-replace-all"))
-  "Does a regex find/replace on the target page.
-
- If the page is empty, will set to default content if provided Works
-by calling get-content then regex-replacing on the content, then
-calling set-content. "
-
-  (let ((tokens (wiki:get-action-tokens target-page)))
-    (multiple-value-bind (content timestamp) (get-page-content target-page)
-      (set-page-content tokens
-			target-page
-			(if content
-			    (cl-ppcre:regex-replace-all regex content replacement)
-			    default-content)
-			:no-create (null default-content)
-			:summary summary
-			:timestamp timestamp))))
-
 ;; EOF

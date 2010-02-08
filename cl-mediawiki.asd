@@ -37,6 +37,6 @@
 				     (:file "main" )
 				     (:file "query" )
 				     (:file "edit"))))
-  :depends-on (:drakma :cl-ppcre :cl-json :log5))
+  :depends-on (:drakma :cl-json :log5))
 
 ;; EOF
