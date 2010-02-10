@@ -122,7 +122,11 @@
 ;; --------------------------------------------------------
 
 (defun make-api-request (api-params &key (force-ssl nil force-ssl-p) (method :GET))
-  "Calls the media wiki api providing the specified parameters"
+  "Calls the media wiki api providing the specified parameters.
+
+API-PARAMS is an alist with CARs specifying keywords and CDRs
+corresponding values."
+
   ;; force-ssl should either be whats passed in, or if nothing is passed in
   ;; check to see what protocol we used to connect to the server
   (let ((force-ssl (if force-ssl-p
@@ -132,11 +136,22 @@
 	(full-url (format nil "~a/api.php" (url *mediawiki*)))
 	(requests-count 0)
 	(result nil))
-    (push '("format" . "json") api-params)
+    ;; configure default JSON format
+    (push '("format" . "json")
+	  api-params)
+    ;; add 'Maxlag parameter' to POST requests
     (when (and (not (= (maxlag *mediawiki*) 0))
-	       (eql method :POST))
-      ;; add maxlag parameter to POST requests
-      (push `("maxlag" . ,(maxlag *mediawiki*)) api-params))
+	       (equal method :POST))
+      (push `("maxlag" . ,(format nil "~A" (maxlag *mediawiki*)))
+	    api-params))
+    ;; check whether add assert parameter (Extension:Assert_Edit)
+    (when (and (string-equal "edit"
+			     (cdr (assoc "action" api-params
+					 :test #'string-equal)))
+	       (assert-edit-p *mediawiki*)
+	       (bot-p *mediawiki*))
+      (push '("assert" . "bot")
+	    api-params))
     ;; check whether requests come too often
     (when (< (- (get-universal-time) (last-request-time *mediawiki*))
 	     (request-delay *mediawiki*))
@@ -156,7 +171,7 @@
 				  :parameters api-params
 				  :cookie-jar (cookie-jar *mediawiki*)))
 	 (declare (ignore stream must-close status-word))
-	 (log5:log-for trace "uri: ~A~%" uri)
+	 (log5:log-for trace "uri: ~A" uri)
 	 ;; check whether maxlag signals to pause
 	 (when (and (= status-code +retry-after-http-status+)
 		    (drakma:header-value :retry-after headers))

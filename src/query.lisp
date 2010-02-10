@@ -98,7 +98,7 @@ Examples:
     :core ((action query)
 	    (list categorymembers))
   :req (cmtitle)
-  :based-on (version maxlag smaxage maxage requestid titles pageids revids prop
+  :based-on (version smaxage maxage requestid titles pageids revids prop
 		     meta generator redirects indexpageids)
   :props (cmprop cmnamespace cmcontinue cmlimit cmsort cmdir cmstart cmend cmstartsortkey cmendsortkey)
   :processor

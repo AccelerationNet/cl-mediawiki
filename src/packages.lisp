@@ -26,6 +26,7 @@
    #:mediawiki
    #:*mediawiki*
    #:*default-external-format*
+   #:make-api-request
    #:with-mediawiki
    #:get-value
    ;; QUERY
@@ -43,4 +44,6 @@
    #:add-new-page-section
    #:create-page
    #:get-page-info
-   #:pages-that-embed))
+   #:pages-that-embed
+   ;; UTIL
+   #:user-anon-p))
