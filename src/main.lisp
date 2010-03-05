@@ -32,7 +32,7 @@
 	   :basic-authorization basic-authorization
 	   :force-ssl force-ssl
 	   :parameters api-params
-	   :cookie-jar (cookie-jar *mediawiki*) 
+	   :cookie-jar (cookie-jar *mediawiki*)
 	   ))
       (declare (ignore headers uri stream must-close status-word))
       (values content status))))

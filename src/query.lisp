@@ -1,24 +1,35 @@
 ;; See ../LICENSE  for info 
 (in-package :cl-mediawiki)
 
+(defparameter +default-query-params+
+  '(titles pageids revids prop list meta generator redirects indexpageids export exportnowrap  )
+  "The parameters that are available for any action=query api call")
+
 (defmacro define-proxy (name &key core req based-on props doc (processor 'identity) (method :GET))
   "Defines a function with NAME with REQ required parameters. The
 symbols in the BASED-ON and PROPS lists are concatenated with pairs
 from the CORE list and passed to the MAKE-PARAMETERS function."
-
-  (let ((par-sym (gensym)))
-    `(defun ,name (,@req &key ,@props ,@based-on) ,(if doc doc "no documentation given")
-       (let ((,par-sym (make-parameters
-			(list ,@(mapcar #'(lambda (x) (if (listp x)
-							  `(list ',(car x) ',(cadr x))))
-					core)
-			      ,@(mapcar #'(lambda (x) (if (listp x)
-							  `(list ',(car x) ,(car x))
-							  `(list ',x ,x)))
-					(concatenate 'list req props based-on ))))))
-	 ;(print ,par-sym)
-	 (funcall #',processor
-		  (parse-api-response-to-sxml (make-api-request ,par-sym :method ,method)))))))
+  ;; get the args that are not in req and are found in either based-on or props
+  ;; Also add default params if necessary
+  (let* ((kw-params (set-difference
+		     (union props
+			    (if (eq 'query (cadr (assoc 'action core)))
+				(union based-on +default-query-params+)
+				based-on))
+		     req)))
+    (let ((par-sym (gensym)))
+      `(defun ,name (,@req &key ,@kw-params) ,(if doc doc "no documentation given")
+	 (let ((,par-sym (make-parameters
+			  (list ,@(mapcar #'(lambda (x) (if (listp x)
+							    `(list ',(car x) ',(cadr x))))
+					  core)
+				,@(mapcar #'(lambda (x) (if (listp x)
+							    `(list ',(car x) ,(car x))
+							    `(list ',x ,x)))
+					  (concatenate 'list req kw-params ))))))
+					;(print ,par-sym)
+	   (funcall #',processor
+		    (parse-api-response-to-sxml (make-api-request ,par-sym :method ,method))))))))
 
 
 (define-proxy login
@@ -112,6 +123,46 @@ Parameters:
  Examples: (get-page-content \"Physics\")
 
  Returns: a string with the given page content
+")
+
+(define-proxy get-page-history
+    :core ((action query)
+	   (prop revisions))
+  :props ((rvprop "user|comment|timestamp|ids")
+	  (rvlimit 500) rvstartid rvendid rvstart rvend rvdir          
+	  rvuser rvexcludeuser rvexpandtemplates rvgeneratexml rvsection
+	  rvtoken rvcontinue rvdiffto)
+  :processor
+  (lambda (sxml)
+    (let ((rows (find-nodes-by-name "rev" sxml)))
+      (mapcar (lambda (x) (convert-sxml-attribs-to-alist (second x)))
+	      rows)))
+  :doc
+    "Get the History for a given page
+
+Parameters:
+  rvprop         - Which properties to get for each revision.
+                   Values (separate with '|'): ids, flags, timestamp, user, size, comment, content
+                   Default: ids|timestamp|flags|comment|user
+  rvlimit        - limit how many revisions will be returned (enum)
+                   No more than 500 (5000 for bots) allowed.
+  rvstartid      - from which revision id to start enumeration (enum)
+  rvendid        - stop revision enumeration on this revid (enum)
+  rvstart        - from which revision timestamp to start enumeration (enum)
+  rvend          - enumerate up to this timestamp (enum)
+  rvdir          - direction of enumeration - towards newer or older revisions (enum)
+                   One value: newer, older
+                   Default: older
+  rvuser         - only include revisions made by user
+  rvexcludeuser  - exclude revisions made by user
+  rvexpandtemplates - expand templates in revision content
+  rvgeneratexml  - generate XML parse tree for revision content
+  rvsection      - only retrieve the content of this section
+  rvtoken        - Which tokens to obtain for each revision
+                   Values (separate with '|'): rollback
+  rvcontinue     - When more results are available, use this to continue
+  rvdiffto       - Revision ID to diff each revision to.
+                   Use prev, next and cur for the previous, next and current revision respectively.
 ")
 
 (define-proxy pages-that-embed
@@ -242,7 +293,7 @@ Parameters:
     :core ((action query)
 	   (list recentchanges))
   :req ()
-  :props (rcstart  rcend rcdir rcnamespace  rctitles  (rcprop "user|comment|title|timestamp|ids")  rcshow  rclimit  rctype)
+  :props (rcstart  rcend rcdir rcnamespace  (rcprop "user|comment|title|timestamp|ids")  rcshow  rclimit  rctype)
   :processor
   (lambda (sxml)
     (mapcar #'(lambda (n)

@@ -12,6 +12,7 @@
    ;; query
    #:login
    #:get-page-content
+   #:get-page-history
    #:get-action-tokens
    #:recent-changes
    #:user-contribs
