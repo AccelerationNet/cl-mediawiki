@@ -1,9 +1,10 @@
 ;; See ../LICENSE  for info 
 (in-package :cl-mediawiki)
 
-(defparameter +default-query-params+
-  '(titles pageids revids prop list meta generator redirects indexpageids export exportnowrap  )
-  "The parameters that are available for any action=query api call")
+(eval-when  (:compile-toplevel :load-toplevel :execute)
+  (defparameter +default-query-params+
+    '(titles pageids revids prop list meta generator redirects indexpageids export exportnowrap  )
+    "The parameters that are available for any action=query api call"))
 
 (defmacro define-proxy (name &key core req based-on props doc (processor 'identity) (method :GET))
   "Defines a function with NAME with REQ required parameters. The
