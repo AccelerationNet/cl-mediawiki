@@ -13,6 +13,7 @@
    #:login
    #:get-page-content
    #:get-page-history
+   #:get-revisions
    #:get-action-tokens
    #:recent-changes
    #:user-contribs

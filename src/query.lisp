@@ -290,6 +290,49 @@ Parameters:
  Returns: an alist of attributes about the page
 ")
 
+(define-proxy get-revisions
+    :core ((action query)
+	   (prop revisions))
+    :req (titles)
+    :props ((rvprop "ids|flags|timestamp|user|comment|size") rvlimit rvstartid rvendid rvstart rvend rvdir rvuser rvexcludeuser rvcontinue)
+    :processor
+    (lambda (sxml)
+      (let* ((revs (mapcar #'(lambda (n) ; process each individual rev item
+			       (convert-sxml-attribs-to-alist (cadr n)))
+			   (find-nodes-by-name "rev" sxml)))
+	     (c-blob (car (find-nodes-by-name "query-continue" sxml)))
+	     (continuation (when c-blob (destructuring-bind (_1 _2 (_3 ((_4 continuation)))) c-blob
+					  (declare (ignore _1 _2 _3 _4))
+					  continuation))))
+	(values revs continuation)))
+    :doc
+    "Gets the revisions of a page.
+
+Parameters:
+  titles         - the title of the page we wish to retrieve the info of
+  rvprop:        - Which properties to get for each revision
+                   Values (separate with '|'): ids, flags, timestamp, user, comment, size.
+		   Default is all. Unsupported values: content, tags.
+  rvcontinue: -    When more results are available, use this to continue
+                   (This is different from the returned continuation.)
+  rvlimit: 	 - The maximum number of revisions to return (enum)
+  rvstartid: 	 - Revision ID to start listing from. (enum)
+  rvendid: 	 - Revision ID to stop listing at. (enum)
+  rvstart: 	 - Timestamp to start listing from. (enum)
+  rvend: 	 - Timestamp to end listing at. (enum)
+  rvdir: 	 - Direction to list in. (enum)
+                   Possible values: older, newer.
+                   Default: older
+  rvuser: 	 - Only list revisions made by this user
+  rvexcludeuser: - Do not list revisions made by this user
+
+ Examples: (get-revisions \"Pigment\" :rvprop \"ids|user|size\" :rvlimit 10)
+           (get-revisions \"Physics\" :rvlimit 10)
+
+ Returns: list of revisions as alists and (if there is one) a continuation, 
+which is the rvstart id to pass in the next call to get more results.
+")
+
 (define-proxy recent-changes
     :core ((action query)
 	   (list recentchanges))
