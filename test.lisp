@@ -20,3 +20,6 @@
 
 (cl-mediawiki:with-mediawiki ("http://en.wikipedia.org/w")
   (cl-mediawiki:user-contribs "bobbysmith007"))
+
+(cl-mediawiki:with-mediawiki ("http://en.wikipedia.org/w")
+  (cl-mediawiki:get-revisions "Pigment" :rvlimit 10))
