@@ -294,17 +294,18 @@ Parameters:
     :core ((action query)
 	   (prop revisions))
     :req (titles)
-    :props ((rvprop "ids|flags|timestamp|user|comment|size") rvlimit rvstartid rvendid rvstart rvend rvdir rvuser rvexcludeuser rvcontinue)
+    :props ((rvprop "ids|flags|timestamp|user|comment|size") 
+	    (rvlimit 550) rvstartid rvendid rvstart rvend rvdir rvuser 
+	    rvexcludeuser rvcontinue)
     :processor
     (lambda (sxml)
-      (let* ((revs (mapcar #'(lambda (n) ; process each individual rev item
-			       (convert-sxml-attribs-to-alist (cadr n)))
-			   (find-nodes-by-name "rev" sxml)))
-	     (c-blob (car (find-nodes-by-name "query-continue" sxml)))
-	     (continuation (when c-blob (destructuring-bind (_1 _2 (_3 ((_4 continuation)))) c-blob
-					  (declare (ignore _1 _2 _3 _4))
-					  continuation))))
-	(values revs continuation)))
+      (let ((revs (mapcar #'(lambda (n) (convert-sxml-attribs-to-alist (second n)))
+			  (find-nodes-by-name "rev" sxml)))
+	    (c-blob (first (find-nodes-by-name "query-continue" sxml))))
+	(values revs (when c-blob
+		       (destructuring-bind (_1 _2 (_3 ((_4 continuation)))) c-blob
+			   (declare (ignore _1 _2 _3 _4))
+			   continuation)))))
     :doc
     "Gets the revisions of a page.
 
