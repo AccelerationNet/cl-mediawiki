@@ -126,46 +126,6 @@ Parameters:
  Returns: a string with the given page content
 ")
 
-(define-proxy get-page-history
-    :core ((action query)
-	   (prop revisions))
-  :props ((rvprop "user|comment|timestamp|ids")
-	  (rvlimit 500) rvstartid rvendid rvstart rvend rvdir          
-	  rvuser rvexcludeuser rvexpandtemplates rvgeneratexml rvsection
-	  rvtoken rvcontinue rvdiffto)
-  :processor
-  (lambda (sxml)
-    (let ((rows (find-nodes-by-name "rev" sxml)))
-      (mapcar (lambda (x) (convert-sxml-attribs-to-alist (second x)))
-	      rows)))
-  :doc
-    "Get the History for a given page
-
-Parameters:
-  rvprop         - Which properties to get for each revision.
-                   Values (separate with '|'): ids, flags, timestamp, user, size, comment, content
-                   Default: ids|timestamp|flags|comment|user
-  rvlimit        - limit how many revisions will be returned (enum)
-                   No more than 500 (5000 for bots) allowed.
-  rvstartid      - from which revision id to start enumeration (enum)
-  rvendid        - stop revision enumeration on this revid (enum)
-  rvstart        - from which revision timestamp to start enumeration (enum)
-  rvend          - enumerate up to this timestamp (enum)
-  rvdir          - direction of enumeration - towards newer or older revisions (enum)
-                   One value: newer, older
-                   Default: older
-  rvuser         - only include revisions made by user
-  rvexcludeuser  - exclude revisions made by user
-  rvexpandtemplates - expand templates in revision content
-  rvgeneratexml  - generate XML parse tree for revision content
-  rvsection      - only retrieve the content of this section
-  rvtoken        - Which tokens to obtain for each revision
-                   Values (separate with '|'): rollback
-  rvcontinue     - When more results are available, use this to continue
-  rvdiffto       - Revision ID to diff each revision to.
-                   Use prev, next and cur for the previous, next and current revision respectively.
-")
-
 (define-proxy pages-that-embed
     :core ((action query)
 	   (list embeddedin))
