@@ -12,11 +12,10 @@
    ;; query
    #:login
    #:get-page-content
-   #:get-page-history
-   #:get-revisions
    #:get-action-tokens
    #:recent-changes
    #:user-contribs
+   #:get-revisions
    #:get-revisions-result
    ;; query/query-result
    #:query-result
