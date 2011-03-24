@@ -17,6 +17,12 @@
    #:get-action-tokens
    #:recent-changes
    #:user-contribs
+   #:get-revisions-result
+   ;; query/query-result
+   #:query-result
+   #:has-more-results-p
+   #:get-more-results
+   #:results
    ;; EDIT
    #:set-page-content
    #:append-text-to-page

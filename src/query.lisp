@@ -374,8 +374,81 @@ Parameters:
 
 ")
 
+;;;; query-result and friends
+;; a query-result encapsulates the response to a query, and allows
+;; for repeated follow-up queries
 
+(define-modify-macro
+    appendf (&rest lists) append
+    "Modify-macro for APPEND. Appends LISTS to the place designated by the first argument.")
 
+(defclass query-result ()
+  ((results :accessor results :initarg :results :initform '()) ; a sequence of revisions retrieved so far
+   (closure :initarg :closure :initform nil))
+  (:documentation "Accumulating result to a get-revisions-result query.
+
+  Use has-more-results-p to check if there are more results available.
+  Use get-more-results to get them through one or more queries."))
+
+(defmethod has-more-results-p ((qr query-result))
+  "Returns nil, or the closure used for a single follow-up query"
+  (slot-value qr 'closure))
+
+(defmethod get-more-results-once ((qr query-result))
+  "Fetches more results with one follow-up query.
+
+   Updates the query-result object with these new results.
+   Returns the object, and the number of new items fetched."
+  (multiple-value-bind (newrevs c-token new-closure)
+      (funcall (slot-value qr 'closure))
+    (declare (ignore c-token))
+    (appendf (slot-value qr 'results) newrevs)
+    (setf (slot-value qr 'closure) new-closure)
+    (values qr (length newrevs))))
+
+(defmethod get-more-results ((qr query-result) &key (at-least 0) (pause 3))
+  "Fetches AT-LEAST more results, re-querying every PAUSE seconds if necessary.
+
+   If AT-LEAST is nil, repeats until it gets all results.
+   Updates the query-result object with these new results.
+   Returns the object, and the number of new items fetched."
+  (loop with fetched = 0
+        while (and (has-more-results-p qr)
+		   (if (numberp at-least) (< fetched at-least) 't))
+        do (incf fetched (second (multiple-value-list (get-more-results-once qr))))
+        do (sleep pause)
+        finally (return (values qr fetched))))
+
+;;;; get-revisions-result and friends
+;; query functions for doing get-revisions queries that
+;; return their results as query-result objects
+
+(defun get-revisions-and-closure (&rest args)
+  "Like get-revisions, but also returns a closure for a follow-up query.
+
+   This closure can be called outside of a with-mediawiki form.
+
+   Example:
+    (multiple-value-list (with-mediawiki (\"http://en.wikipedia.org/w\")
+       (get-revisions-and-closure \"Pigment\" :rvlimit 3)))
+    (multiple-value-list (funcall (elt * 2)))
+    (multiple-value-list (funcall (elt * 2)))
+    etc.."
+  (let ((mediawiki *mediawiki*))  ; capture *mediawiki* into lexical scope
+    (multiple-value-bind (revs c-token) (apply #'get-revisions args)
+      (values revs (when c-token c-token)
+	      (when c-token
+		(setf (getf (cdr args) :rvstartid) c-token) ;set next rvstartid
+		(lambda ()
+		  (with-mediawiki (mediawiki) ; use captured *mediawiki*
+		    (apply #'get-revisions-and-closure args))))))))
+
+(defun get-revisions-result (&rest args)
+  "Like get-revisions, but returns a query-result object"
+  (multiple-value-bind (revs c-token closure)
+      (apply #'get-revisions-and-closure args)
+    (declare (ignore c-token))
+    (make-instance 'query-result :results revs :closure closure)))
 
 ;; Copyright (c) 2008 Accelerated Data Works, Russ Tyndall
 
