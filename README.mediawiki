@@ -1,0 +1,53 @@
+= CL-!MediaWiki =
+
+This is a project to help make the [http://www.mediawiki.org/wiki/API MediaWiki API] accessible and easy to use from Common Lisp.  While this project is currently sparsely populated, what commands are there should work.  Patches Welcome!
+
+== Supported API ==
+* Edit
+** create-page - Creates a new wiki page
+** add-new-page-section - adds a new section to the specified wiki page
+** append-text-to-page / prepend-text-to-page - adds text at the top or bottom of the specified page
+** set-page-content - sets a pages content to the specified text
+** regex-replace-all - replace all instances of regex with replacement on a target-page.  There is an option for passing what the page content should be if it does not exist
+* Query 
+** token-bag - an object to store action tokens with a time stamp (to prevent overriding someone else's change
+** get-action-tokens - requests and returns a token-bag for an edit/move/delete
+** get-page-content - returns the content of the most recent revision of a page
+** get-page-info - returns the properties of a page as an alist
+** pages-that-embed - returns a list of pages that embed another page/template
+** recent-changes - a list of recent changes to the wiki
+** user-contribs - a list of contributions from a specific user
+* Conditions 
+** Errors
+*** media-wiki-error - signaled when media wiki returns an error
+
+== Example ==
+
+<code>
+;; Gets the content of page "Pigment" from wikipedia
+(with-mediawiki ("http://en.wikipedia.org/w")
+    (get-page-content "Pigment"))
+
+;; Gets the content of page "Pigment" from a private mediawiki that requires authentication
+(with-mediawiki ((make-instance 'mediawiki
+				 :url "http://wiki.yourdomain.net"
+				 :auth (list "user" "pass")))
+    (get-page-content "Pigment"))
+
+;; Sets the content of page "Pigment" to be "This is the new content"
+(with-mediawiki (...)
+    (set-page-content "Pigment" "This is the new content"))
+</code>
+
+== Dependencies ==
+ * [http://common-lisp.net/project/cxml/ Closure-XML]
+ * [http://weitz.de/drakma/ Drakma]
+
+=== Optional Dependencies ===
+ * [http://weitz.de/cl-ppcre/ CL-PPCRE] - If you have this installed, there will be a couple more functions available
+
+== News ==
+ * [http://russ.unwashedmeme.com/blog/?p=135 Hosting Move Announcement]
+ * [http://russ.unwashedmeme.com/blog/?p=52 Blagging about my first in system usage of CL-MediaWiki]
+ * [http://russ.unwashedmeme.com/blog/?p=43 Introductory Blog Post]
+
