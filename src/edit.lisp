@@ -4,17 +4,19 @@
   "Checks for the expected 'success' message
    signals match-errors assertion-errors and media-wiki-errors
   "
-  (check-for-xml-for-error xml)
-  ;; search xml for edit node
-  (loop for kid in (cddr xml) ;; first node is api
-	do (when (string-equal "edit" (first kid))
-	     (let ((alist (second kid)))
-	       (unless (string-equal "success" (sxml-attribute-value "result" alist))
-		 (error 'media-wiki-error
-			:message (format nil "Failed to Edit ~A : ~A "
-					 title alist)
-			:code nil
-			:obj xml))))))
+  (check-sxml-for-error xml)
+  (let* ((kid (find-nodes-by-name "edit" xml))
+	 (alist (second kid)))
+    (unless alist
+      (error 'media-wiki-error
+	     :obj xml
+	     :message "Couldnt find edit results"))
+    (unless (string-equal "success" (sxml-attribute-value "result" alist))
+      (error 'media-wiki-error
+	     :message (format nil "Failed to Edit ~A : ~A "
+			      title alist)
+	     :code nil
+	     :obj xml))))
 
 (defun create-page
     (title text &key
@@ -37,9 +39,7 @@
 	   ))
       (check-edit-response
        title
-       (parse-api-response-to-sxml (make-api-request parameters :method :post))))
-  
-  )
+       (parse-api-response-to-sxml (make-api-request parameters :method :post)))))
 
 (defun add-new-page-section (title section-title section-text &key no-create)
   "Creates a new == section-title ==  at the bottom of the page. followed by the specified text"

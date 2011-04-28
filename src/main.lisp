@@ -86,20 +86,15 @@
 	  (obj err)
 	  ))
 
-(define-condition match-error (error)
-  ((obj :accessor obj :initarg :obj :initform nil)
-   (match-against :accessor match-against :initarg :match-against :initform nil)
-   (message :accessor message :initarg :message :initform nil)))
-
-(defun check-for-xml-for-error (xml)
+(defun check-sxml-for-error (xml)
   "search the response for <api><error attribs></api>"
-  (loop for kid in (cddr xml) ;; first node is api
-	do (when (string-equal "error" (first kid))
-	     (let ((err (second kid)))
-	       (error 'media-wiki-error
-		      :obj xml
-		      :code (sxml-attribute-value "code" err)
-		      :message (sxml-attribute-value "info" err))))))
+  (let* ((kid (find-nodes-by-name "error" xml))
+	 (err (second kid)))
+    (when err
+      (error 'media-wiki-error
+	     :obj xml
+	     :code (sxml-attribute-value "code" err)
+	     :message (sxml-attribute-value "info" err)))))
 
 ;; Copyright (c) 2008 Accelerated Data Works, Russ Tyndall
 
