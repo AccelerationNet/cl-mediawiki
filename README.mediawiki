@@ -1,4 +1,4 @@
-= CL-!MediaWiki =
+= CL-MediaWiki =
 
 This is a project to help make the [http://www.mediawiki.org/wiki/API MediaWiki API] accessible and easy to use from Common Lisp.  While this project is currently sparsely populated, what commands are there should work.  Patches Welcome!
 
@@ -41,13 +41,16 @@ This is a project to help make the [http://www.mediawiki.org/wiki/API MediaWiki 
 </pre>
 
 == Dependencies ==
+
 * [http://common-lisp.net/project/cxml/ Closure-XML]
 * [http://weitz.de/drakma/ Drakma]
 
 === Optional Dependencies ===
+
 * [http://weitz.de/cl-ppcre/ CL-PPCRE] - If you have this installed, there will be a couple more functions available
 
 == News ==
+
 * [http://russ.unwashedmeme.com/blog/?p=135 Hosting Move Announcement]
 * [http://russ.unwashedmeme.com/blog/?p=52 Blagging about my first in system usage of CL-MediaWiki]
 * [http://russ.unwashedmeme.com/blog/?p=43 Introductory Blog Post]
