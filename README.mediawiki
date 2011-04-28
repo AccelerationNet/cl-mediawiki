@@ -3,6 +3,7 @@
 This is a project to help make the [http://www.mediawiki.org/wiki/API MediaWiki API] accessible and easy to use from Common Lisp.  While this project is currently sparsely populated, what commands are there should work.  Patches Welcome!
 
 == Supported API ==
+
 * Edit
 ** create-page - Creates a new wiki page
 ** add-new-page-section - adds a new section to the specified wiki page
@@ -23,31 +24,31 @@ This is a project to help make the [http://www.mediawiki.org/wiki/API MediaWiki 
 
 == Example ==
 
-<code>
-;; Gets the content of page "Pigment" from wikipedia
-(with-mediawiki ("http://en.wikipedia.org/w")
+<pre>
+ ;; Gets the content of page "Pigment" from wikipedia
+ (with-mediawiki ("http://en.wikipedia.org/w")
     (get-page-content "Pigment"))
 
-;; Gets the content of page "Pigment" from a private mediawiki that requires authentication
-(with-mediawiki ((make-instance 'mediawiki
+ ;; Gets the content of page "Pigment" from a private mediawiki that requires authentication
+ (with-mediawiki ((make-instance 'mediawiki
 				 :url "http://wiki.yourdomain.net"
 				 :auth (list "user" "pass")))
     (get-page-content "Pigment"))
 
-;; Sets the content of page "Pigment" to be "This is the new content"
-(with-mediawiki (...)
+ ;; Sets the content of page "Pigment" to be "This is the new content"
+ (with-mediawiki (...)
     (set-page-content "Pigment" "This is the new content"))
-</code>
+</pre>
 
 == Dependencies ==
- * [http://common-lisp.net/project/cxml/ Closure-XML]
- * [http://weitz.de/drakma/ Drakma]
+* [http://common-lisp.net/project/cxml/ Closure-XML]
+* [http://weitz.de/drakma/ Drakma]
 
 === Optional Dependencies ===
- * [http://weitz.de/cl-ppcre/ CL-PPCRE] - If you have this installed, there will be a couple more functions available
+* [http://weitz.de/cl-ppcre/ CL-PPCRE] - If you have this installed, there will be a couple more functions available
 
 == News ==
- * [http://russ.unwashedmeme.com/blog/?p=135 Hosting Move Announcement]
- * [http://russ.unwashedmeme.com/blog/?p=52 Blagging about my first in system usage of CL-MediaWiki]
- * [http://russ.unwashedmeme.com/blog/?p=43 Introductory Blog Post]
+* [http://russ.unwashedmeme.com/blog/?p=135 Hosting Move Announcement]
+* [http://russ.unwashedmeme.com/blog/?p=52 Blagging about my first in system usage of CL-MediaWiki]
+* [http://russ.unwashedmeme.com/blog/?p=43 Introductory Blog Post]
 
