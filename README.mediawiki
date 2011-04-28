@@ -2,6 +2,10 @@
 
 This is a project to help make the [http://www.mediawiki.org/wiki/API MediaWiki API] accessible and easy to use from Common Lisp.  While this project is currently sparsely populated, what commands are there should work.  Patches Welcome!
 
+== Project URL: ==
+
+https://github.com/bobbysmith007/cl-mediawiki
+
 == Supported API ==
 
 * Edit
