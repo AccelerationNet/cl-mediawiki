@@ -80,7 +80,7 @@
    (message :accessor message :initarg :message :initform nil)))
 
 (defmethod print-object ((err media-wiki-error) stream)
-  (format stream "MEDIA-WIKI-ERROR: ~a ~a ~%~a"
+  (format stream "MEDIA-WIKI-ERROR: ~s ~a ~%~s"
 	  (code err)
 	  (message err)
 	  (obj err)
@@ -91,34 +91,15 @@
    (match-against :accessor match-against :initarg :match-against :initform nil)
    (message :accessor message :initarg :message :initform nil)))
 
-(defmacro match-response-with-error-reporting ((match-form object)&body body)
-  "Attempts to unify body as (match (match-form obj) ,@body)
-
-   will detect wiki errors and hand them back to us as reasonable CL signals
-   if we canot match signal a matching-error
-  "
-  (let ((obj-sym (gensym "obj")))
-    `(let ((,obj-sym ,object))
-       (unify:match-case
-	(,obj-sym)
-	(`("api"
-	   NIL
-	   ("error" ?err))
-	  (error 'media-wiki-error :obj ,obj-sym
-				   :code (sxml-attribute-value "code" err)
-				   :message (sxml-attribute-value "info" err)))
-	(,match-form
-	 ,@body)
-	(T
-	 (error 'match-error :message "Error matching"
-			     :obj ,obj-sym
-			     :match-against ,match-form))
-	))))
-
-
-
-
-
+(defun check-for-xml-for-error (xml)
+  "search the response for <api><error attribs></api>"
+  (loop for kid in (cddr xml) ;; first node is api
+	do (when (string-equal "error" (first kid))
+	     (let ((err (second kid)))
+	       (error 'media-wiki-error
+		      :obj xml
+		      :code (sxml-attribute-value "code" err)
+		      :message (sxml-attribute-value "info" err))))))
 
 ;; Copyright (c) 2008 Accelerated Data Works, Russ Tyndall
 

@@ -4,16 +4,17 @@
   "Checks for the expected 'success' message
    signals match-errors assertion-errors and media-wiki-errors
   "
-  (match-response-with-error-reporting
-      (`("api"
-	 NIL
-	 ("edit" ?alist))
-	xml)
-    (assert (string-equal "success" (sxml-attribute-value "result" alist))
-	    (alist) "Failed to create page: '~a' ~a  ~a ~%~%~A" title (sxml-attribute-value "result" alist) (string-equal "success "(sxml-attribute-value "result" alist)) alist)
-    T
-    )
-  )
+  (check-for-xml-for-error xml)
+  ;; search xml for edit node
+  (loop for kid in (cddr xml) ;; first node is api
+	do (when (string-equal "edit" (first kid))
+	     (let ((alist (second kid)))
+	       (unless (string-equal "success" (sxml-attribute-value "result" alist))
+		 (error 'media-wiki-error
+			:message (format nil "Failed to Edit ~A : ~A "
+					 title alist)
+			:code nil
+			:obj xml))))))
 
 (defun create-page
     (title text &key
@@ -136,6 +137,7 @@
       (make-api-request parameters :method :post)))
     ))
 
+#+cl-ppcre
 (defun regex-replace-all (regex target-page replacement  &key default-content (summary "cl-mediawiki:regex-replace-all"))
   "Does a regex find/replace on the target page. If the page is empty, will set to default content if provided
     Works by calling get-content then regex-replacing on the content, then calling set-content "

@@ -16,4 +16,6 @@
 				     (:file "main" )
 				     (:file "query" )
 				     (:file "edit"))))
-  :depends-on (:cxml :drakma :cl-unification :cl-ppcre))
+  ;; Additional Functionality will be loaded if cl-ppcre is in
+  ;; the features list during compilation
+  :depends-on (:cxml :drakma))
