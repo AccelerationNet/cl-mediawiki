@@ -5,7 +5,8 @@
    signals match-errors assertion-errors and media-wiki-errors
   "
   (check-sxml-for-error xml)
-  (let* ((kid (find-nodes-by-name "edit" xml))
+  (let* ((kid (first
+	       (find-nodes-by-name "edit" xml)))
 	 (alist (second kid)))
     (unless alist
       (error 'media-wiki-error
