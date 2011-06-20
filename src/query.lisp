@@ -32,11 +32,22 @@ from the CORE list and passed to the MAKE-PARAMETERS function."
 	   (funcall #',processor
 		    (parse-api-response-to-sxml (make-api-request ,par-sym :method ,method))))))))
 
+(defun login (lgname lgpassword &key lgdomain)
+  ;;login is a 2 step process.  http://www.mediawiki.org/wiki/API:Login
+  (let* ((sxml (%login lgname lgpassword :lgdomain lgdomain))
+	 (login-attrs (cadar (find-nodes-by-name "login" sxml)))
+	 (result (cadr (find "result" login-attrs
+			     :test #'string= :key #'car))))
+    (if (string= result "NeedToken")
+	(%login lgname lgpassword :lgdomain lgdomain
+		:lgtoken (cadr (find "token" login-attrs
+				     :test #'string= :key #'car)))
+	sxml)))
 
-(define-proxy login
+(define-proxy %login
     :core ((action login))
     :req (lgname lgpassword)
-    :props (lgdomain)
+    :props (lgdomain lgtoken)
     :method :POST
     :doc
     "
@@ -51,6 +62,7 @@ Parameters:
   lgname         - User Name
   lgpassword     - Password
   lgdomain       - Domain (optional)
+  lgtoken        - Login token obtained in first request
 Example:
   api.php?action=login&lgname=user&lgpassword=password ")
 
