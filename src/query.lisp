@@ -306,6 +306,43 @@ Parameters:
 which is the rvstart id to pass in the next call to get more results.
 ")
 
+(define-proxy get-links
+    :core ((action query)
+	   (prop links))
+    :req (titles)
+    :props ((pllimit 5000) 
+;	    plnamespace  ;; UNIMPLEMENTED
+	    plcontinue)
+    :processor
+    (lambda (sxml)
+      (let ((links (mapcar #'(lambda (n) (convert-sxml-attribs-to-alist (second n)))
+			  (find-nodes-by-name "pl" sxml)))
+	    (c-blob (first (find-nodes-by-name "query-continue" sxml))))
+	(values links (when c-blob
+		       (destructuring-bind (_1 _2 (_3 ((_4 continuation)))) c-blob
+			   (declare (ignore _1 _2 _3 _4))
+			   continuation)))))
+    :doc
+    "Gets a list of all links on the provided pages.
+
+Parameters:
+  titles         - the title of the page we wish to retrieve the info of
+  pllimit        - How many links to return. Default: 10. No more than 500 (5000 for bots) allowed.
+  plcontinue     - When more results are available, use this to continue.
+  plnamespace    - Only list links to pages in these namespaces. (NOT IMPLEMENTED)
+
+Examples: 
+  ; gets 10 results
+  (get-links \"Pigment\" :pllimit 10) 
+
+  ; gets 10 results, then gets 10 more using a continuation token
+  (multiple-value-bind (firstresults continuation-token) 
+		  (get-links \"Pigment\" :pllimit 10)
+		(let ((secondresults (get-links \"Pigment\" :pllimit 10 :plcontinue continuation-token)))
+		  (list firstresults secondresults)))
+")
+
+
 (define-proxy recent-changes
     :core ((action query)
 	   (list recentchanges))

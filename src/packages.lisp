@@ -15,6 +15,7 @@
    #:get-action-tokens
    #:recent-changes
    #:user-contribs
+   #:get-links
    #:get-revisions
    #:get-revisions-result
    ;; query/query-result
