@@ -34,7 +34,7 @@
 (defmacro def-test (name (&rest args) &body body)
   (loop for tag in args
 	do (setf (get tag :tests)
-		 (union (ensure-list (get tag :tests))
+		 (union (alexandria:ensure-list (get tag :tests))
 			(list name))))
   `(lisp-unit:define-test ,name 
      (progn
@@ -50,8 +50,8 @@
 (defun run-tests (&key suites tests (use-debugger T))
   (let* ((*package* (find-package :cl-mediawiki-test))
 	 (lisp-unit::*use-debugger* use-debugger)
-	 (tests (append (ensure-list tests)
-			(loop for suite in (ensure-list suites)
+	 (tests (append (alexandria:ensure-list tests)
+			(loop for suite in (alexandria:ensure-list suites)
 			      appending (get suite :tests))))
 	 (out (with-output-to-string (*standard-output*)
 		(lisp-unit::run-test-thunks

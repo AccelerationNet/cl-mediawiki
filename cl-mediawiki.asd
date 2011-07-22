@@ -18,7 +18,7 @@
 				     (:file "edit"))))
   ;; Additional Functionality will be loaded if cl-ppcre is in
   ;; the features list during compilation
-  :depends-on (:cxml :drakma))
+  :depends-on (:cxml :drakma :alexandria))
 
 (defsystem :cl-mediawiki-test
   :description "A tool to help talk to mediawiki's api."
