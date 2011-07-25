@@ -311,7 +311,7 @@ which is the rvstart id to pass in the next call to get more results.
 	   (prop links))
     :req (titles)
     :props ((pllimit 5000) 
-;	    plnamespace  ;; UNIMPLEMENTED
+	    (plnamespace nil)
 	    plcontinue)
     :processor
     (lambda (sxml)
@@ -329,7 +329,8 @@ Parameters:
   titles         - the title of the page we wish to retrieve the info of
   pllimit        - How many links to return. Default: 10. No more than 500 (5000 for bots) allowed.
   plcontinue     - When more results are available, use this to continue.
-  plnamespace    - Only list links to pages in these namespaces. (NOT IMPLEMENTED)
+  plnamespace    - Only list links to pages in these namespaces.
+                   (For example, set plnamespace to 0 to get only article links in Wikipedia.)
 
 Examples: 
   ; gets 10 results
