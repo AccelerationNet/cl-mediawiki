@@ -456,7 +456,7 @@ Parameters:
     (setf (slot-value qr 'closure) new-closure)
     (values qr (length newrevs))))
 
-(defmethod get-more-results ((qr query-result) &key (at-least 0) (pause 3))
+(defmethod get-more-results ((qr query-result) &key (at-least 0) (pause 1))
   "Fetches AT-LEAST more results, re-querying every PAUSE seconds if necessary.
 
    If AT-LEAST is nil, repeats until it gets all results.
