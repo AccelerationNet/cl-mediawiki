@@ -19,6 +19,8 @@ https://github.com/bobbysmith007/cl-mediawiki
 ** get-action-tokens - requests and returns a token-bag for an edit/move/delete
 ** get-page-content - returns the content of the most recent revision of a page
 ** get-page-info - returns the properties of a page as an alist
+** get-revisions - returns revision history of a page
+** get-links - returns outgoing links from a page
 ** pages-that-embed - returns a list of pages that embed another page/template
 ** recent-changes - a list of recent changes to the wiki
 ** user-contribs - a list of contributions from a specific user
@@ -42,6 +44,11 @@ https://github.com/bobbysmith007/cl-mediawiki
  ;; Sets the content of page "Pigment" to be "This is the new content"
  (with-mediawiki (...)
     (set-page-content "Pigment" "This is the new content"))
+
+ ;; Get the ids, user, and size of the last 10 revisions 
+ (with-mediawiki ("http://en.wikipedia.org/w")
+    (get-revisions "Pigment" :rvprop "ids|user|size" :rvlimit 10))
+
 </pre>
 
 == Dependencies ==
