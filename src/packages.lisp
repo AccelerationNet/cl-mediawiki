@@ -30,4 +30,24 @@
    #:create-page
    #:regex-replace-all
    #:get-page-info
-   #:pages-that-embed))
+   #:pages-that-embed)
+  (:documentation 
+   "This package provides a client to the mediawiki API, which is used 
+by Wikipedia among others.
+
+Exported functions fairly closely mirror the command structure of the
+API, which is summarized here: http://en.wikipedia.org/w/api.php
+
+ Usage example:
+ ;; setup to use only Wikipedia
+ CL-USER> (setf cl-mediawiki:*mediawiki* 
+                (cl-mediawiki:with-mediawiki (\"http://en.wikipedia.org/w\") 
+                 cl-mediawiki:*mediawiki*))
+
+ ;; get content of article titled Pigment
+ CL-USER> (cl-mediawiki:get-page-content \"Pigment\")
+
+ ;; get the revids and sizes of its last 10 revisions
+ CL-USER> (cl-mediawiki:get-revisions \"Pigment\" :rvprop \"ids|user|size\" :rvlimit 10)
+
+Further documentation is in README.mediawiki."))

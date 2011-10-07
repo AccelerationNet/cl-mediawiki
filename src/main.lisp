@@ -23,6 +23,7 @@
 		       (eq 0 (search "https://" (url *mediawiki*) :test #'char-equal ))
 		       ))
 	(full-url (format nil "~a/api.php" (url *mediawiki*))))
+;;    (format *debug-io* "~&api-params == ~S" api-params) ; debugging
     (push '("format" . "xml") api-params)
     (multiple-value-bind (content status headers uri stream must-close status-word)
 	(let ((drakma:*drakma-default-external-format* *default-external-format*))
@@ -34,6 +35,7 @@
 	   :parameters api-params
 	   :cookie-jar (cookie-jar *mediawiki*)
 	   ))
+;;      (format *debug-io* "~&uri == ~S" uri) ; debugging
       (declare (ignore headers uri stream must-close status-word))
       (values content status))))
 
