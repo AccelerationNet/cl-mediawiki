@@ -114,6 +114,14 @@ Parameters:
     )
 
 
+#| Some experimenting indicates that, at least for queries
+where ((action query) (prop revisions) (rvprop content)), the
+parameters titles and revids are mutually exclusive. 
+
+The following implementation is therefore broken. By requiring titles,
+it prevents you from doing queries that specified a particular
+revision id, for instance. |#
+
 (define-proxy get-page-content
     :core ((action query)
 	   (prop revisions)
@@ -125,7 +133,10 @@ Parameters:
     (let ((rows (find-nodes-by-name "rev" sxml)))  
       (third (first rows))))
   :doc
-    "Get the content for a given page
+    "Get the content for a given page.
+
+Does not accept revid. To get the content of older pages, use
+get-revisions with the rvprop content tag.
 
 Parameters:
   titles - the title of the page
@@ -134,6 +145,30 @@ Parameters:
                    (a number indicating which section, not the section name)
 
  Examples: (get-page-content \"Physics\")
+
+ Returns: a string with the given page content
+")
+
+(define-proxy get-page-content-by-revid
+    :core ((action query)
+	   (prop revisions)
+	   (rvprop content))
+  :req (revids)
+  :props (rvsection)
+  :processor
+  (lambda (sxml)
+    (let ((rows (find-nodes-by-name "rev" sxml)))
+      (third (first rows))))
+  :doc
+    "Get the content for a given revid
+
+Parameters:
+  revids - the revision id of the page
+
+  rvsection      - only retrieve the content of this section
+                   (a number indicating which section, not the section name)
+
+ Examples: (get-page-content 446445813)
 
  Returns: a string with the given page content
 ")
@@ -268,24 +303,55 @@ Parameters:
     :req (titles)
     :props ((rvprop "ids|flags|timestamp|user|comment|size") 
 	    (rvlimit 550) rvstartid rvendid rvstart rvend rvdir rvuser 
-	    rvexcludeuser rvcontinue)
+	    rvexcludeuser rvcontinue rvdiffto)
     :processor
     (lambda (sxml)
-      (let ((revs (mapcar #'(lambda (n) (convert-sxml-attribs-to-alist (second n)))
-			  (find-nodes-by-name "rev" sxml)))
-	    (c-blob (first (find-nodes-by-name "query-continue" sxml))))
-	(values revs (when c-blob
-		       (destructuring-bind (_1 _2 (_3 ((_4 continuation)))) c-blob
+;;    (format *debug-io* "~&get-revisions processing sxml== ~S" sxml) ; debug
+      (flet ((parse-rawrev (rawrev)
+               "Parses a rev tag, to handle possible tag contents.
+Adds text from rvprop content or parameter rvdiffto as an attrib.
+Possible rev structures:
+| <rev attrs... />                             #normal rvprops
+| <rev attrs...>CONTENT</rev>                  #rvprop content
+| <rev attrs...><diff>DIFFCONTENT</diff></rev> #rvdiffto
+
+Content is introduced by a xml:space attribute, which we dump.
+
+This ad-hoc parsing makes me sad."
+               (destructuring-bind (revstr attribs &optional revcontent) rawrev
+                 (declare (ignore revstr))
+                 (let* ((attribs-filtered
+                         (remove-if-not ;removes any xml:space attrib
+                          #'(lambda (attrib) (stringp (car attrib)))
+                          attribs))
+                        (attribs-with-content
+                         (cond          ; <rev attrs... />
+                           ((null revcontent) 
+                            attribs-filtered)
+                                        ; <rev attrs...>content</rev>
+                           ((stringp revcontent) 
+                             (cons (list "content" revcontent) attribs-filtered))
+                                        ; <rev attrs...><diff>DIFFCONTENT</diff></rev>
+                           ((and (listp revcontent) (equal (first revcontent) "diff"))
+                             (cons (list "diffcontent" (elt revcontent 2)) attribs-filtered))
+                           (t           ; error. no match. drop the contents
+                            attribs-filtered))))
+                   (convert-sxml-attribs-to-alist attribs-with-content)))))
+        (let* ((rawrevs (find-nodes-by-name "rev" sxml))
+               (revs (mapcar #'parse-rawrev rawrevs))
+               (c-blob (first (find-nodes-by-name "query-continue" sxml))))
+          (values revs (when c-blob
+                         (destructuring-bind (_1 _2 (_3 ((_4 continuation)))) c-blob
 			   (declare (ignore _1 _2 _3 _4))
-			   continuation)))))
+			   continuation))))))
     :doc
     "Gets the revisions of a page.
 
 Parameters:
   titles         - the title of the page we wish to retrieve the info of
   rvprop:        - Which properties to get for each revision
-                   Values (separate with '|'): ids, flags, timestamp, user, comment, size.
-		   Default is all. Unsupported values: content, tags.
+                   Possible values (separate with '|'): ids, flags, timestamp, 
+                   user, comment, size, content. Default is all except content.
   rvcontinue: -    When more results are available, use this to continue
                    (This is different from the returned continuation.)
   rvlimit: 	 - The maximum number of revisions to return (enum)
@@ -298,6 +364,8 @@ Parameters:
                    Default: older
   rvuser: 	 - Only list revisions made by this user
   rvexcludeuser: - Do not list revisions made by this user
+  rvdiffto:      - Revision ID to diff each revision to.
+                   Possible values (an id, \"prev\", \"next\" or \"cur\"). 
 
  Examples: (get-revisions \"Pigment\" :rvprop \"ids|user|size\" :rvlimit 10)
            (get-revisions \"Physics\" :rvlimit 10)
@@ -456,7 +524,7 @@ Parameters:
     (setf (slot-value qr 'closure) new-closure)
     (values qr (length newrevs))))
 
-(defmethod get-more-results ((qr query-result) &key (at-least 0) (pause 3))
+(defmethod get-more-results ((qr query-result) &key (at-least 0) (pause 1))
   "Fetches AT-LEAST more results, re-querying every PAUSE seconds if necessary.
 
    If AT-LEAST is nil, repeats until it gets all results.
