@@ -303,22 +303,39 @@ Parameters:
     :req (titles)
     :props ((rvprop "ids|flags|timestamp|user|comment|size") 
 	    (rvlimit 550) rvstartid rvendid rvstart rvend rvdir rvuser 
-	    rvexcludeuser rvcontinue)
+	    rvexcludeuser rvcontinue rvdiffto)
     :processor
     (lambda (sxml)
 ;;    (format *debug-io* "~&get-revisions processing sxml== ~S" sxml) ; debug
       (flet ((parse-rawrev (rawrev)
-               "Drops namespaced attributes. Adds rev tag content as an attrib"
-               (destructuring-bind (revstr attribs &optional content) rawrev
+               "Parses a rev tag, to handle possible tag contents.
+Adds text from rvprop content or parameter rvdiffto as an attrib.
+Possible rev structures:
+| <rev attrs... />                             #normal rvprops
+| <rev attrs...>CONTENT</rev>                  #rvprop content
+| <rev attrs...><diff>DIFFCONTENT</diff></rev> #rvdiffto
+
+Content is introduced by a xml:space attribute, which we dump.
+
+This ad-hoc parsing makes me sad."
+               (destructuring-bind (revstr attribs &optional revcontent) rawrev
                  (declare (ignore revstr))
                  (let* ((attribs-filtered
-                         (remove-if-not
+                         (remove-if-not ;removes any xml:space attrib
                           #'(lambda (attrib) (stringp (car attrib)))
                           attribs))
                         (attribs-with-content
-                         (if content
-                             (cons (list "content" content) attribs-filtered)
-                             attribs-filtered)))
+                         (cond          ; <rev attrs... />
+                           ((null revcontent) 
+                            attribs-filtered)
+                                        ; <rev attrs...>content</rev>
+                           ((stringp revcontent) 
+                             (cons (list "content" revcontent) attribs-filtered))
+                                        ; <rev attrs...><diff>DIFFCONTENT</diff></rev>
+                           ((and (listp revcontent) (equal (first revcontent) "diff"))
+                             (cons (list "diffcontent" (elt revcontent 2)) attribs-filtered))
+                           (t           ; error. no match. drop the contents
+                            attribs-filtered))))
                    (convert-sxml-attribs-to-alist attribs-with-content)))))
         (let* ((rawrevs (find-nodes-by-name "rev" sxml))
                (revs (mapcar #'parse-rawrev rawrevs))
@@ -347,6 +364,8 @@ Parameters:
                    Default: older
   rvuser: 	 - Only list revisions made by this user
   rvexcludeuser: - Do not list revisions made by this user
+  rvdiffto:      - Revision ID to diff each revision to.
+                   Possible values (an id, \"prev\", \"next\" or \"cur\"). 
 
  Examples: (get-revisions \"Pigment\" :rvprop \"ids|user|size\" :rvlimit 10)
            (get-revisions \"Physics\" :rvlimit 10)
