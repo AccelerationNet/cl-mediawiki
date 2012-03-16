@@ -1,23 +1,41 @@
 (in-package :cl-mediawiki)
 
-(defun check-edit-response (title xml)
-  "Checks for the expected 'success' message
-   signals match-errors assertion-errors and media-wiki-errors
+(defun check-api-response (xml name datum)
+  " Checks for the expected 'success' message in the node matching the
+name parameter
+
+signals match-errors assertion-errors and media-wiki-errors, printing
+datum in error messages.
+
+returns values:
+ 1. the xml response
+ 2. the alist of node attributes for the node we checked for success
   "
+
   (check-sxml-for-error xml)
   (let* ((kid (first
-	       (find-nodes-by-name "edit" xml)))
+	       (find-nodes-by-name name xml)))
 	 (alist (second kid)))
     (unless alist
       (error 'media-wiki-error
 	     :obj xml
-	     :message "Couldnt find edit results"))
+	     :message (format nil "Couldnt find ~a results"
+			      name)))
     (unless (string-equal "success" (sxml-attribute-value "result" alist))
       (error 'media-wiki-error
-	     :message (format nil "Failed to Edit ~A : ~A "
-			      title alist)
+	     :message (format nil "Failed to ~A ~A : ~A "
+			      name datum alist)
 	     :code nil
-	     :obj xml))))
+	     :obj xml))
+    (values xml alist)))
+
+(defun check-edit-response (datum xml)
+  "Checks for the expected 'success' message
+
+   signals match-errors assertion-errors and media-wiki-errors,
+   printing datum in error messages.
+  "
+  (check-api-response xml "edit" datum ))
 
 (defun create-page
     (title text &key
@@ -150,7 +168,35 @@
      :no-create (null default-content)
      :summary summary)))
 
+(defun upload (path &key
+		      (filename (file-namestring path))
+		      (comment "uploaded via cl-mediawiki")
+		      ignorewarnings)
+  "uploads a file from a local path.
 
+returns 2 values:
+ 1. string for the filename according to mediawiki (eg: Foo.png)
+ 2. string for the wikimarkup to link to the file (eg: [[File:Foo.png]])"
+  (check-type path pathname)
+  (let ((parameters
+	  (make-parameters
+	   `((action upload)
+	     (token ,(edit-token (get-action-tokens "cl-mediawiki")))
+	     (filename ,filename)
+	     (file ,(truename path))
+	     (comment ,comment)
+	     (ignorewarnings ,(if ignorewarnings 1 0))
+	     ))))
+    (multiple-value-bind (xml node-attrs)
+	;; TODO: throw better error about disallowed mime types
+	;;  eg: uploading a .asd file is not allowed
+	(check-api-response
+	 (parse-api-response-to-sxml
+	  (make-api-request parameters :method :post))
+	 "upload" filename)
+      (declare (ignore xml))
+      (let ((filename (sxml-attribute-value "filename" node-attrs)))
+	(values filename (format nil "[[File:~a]]" filename))))))
 
 
 ;; Copyright (c) 2008 Accelerated Data Works, Russ Tyndall

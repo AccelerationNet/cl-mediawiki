@@ -30,7 +30,8 @@
    #:create-page
    #:regex-replace-all
    #:get-page-info
-   #:pages-that-embed)
+   #:pages-that-embed
+   #:upload)
   (:documentation 
    "This package provides a client to the mediawiki API, which is used 
 by Wikipedia among others.

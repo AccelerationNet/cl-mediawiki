@@ -63,6 +63,7 @@
 		   ;;lists should be pipe delimited
 		   (list (format nil "~{~a~^|~}" (mapcar #'format-list-element val)))
 		   (symbol (format nil "~(~a~)" val))
+		   (pathname val)
 		   (T (princ-to-string val))))))))
 
 (defun parse-api-response-to-sxml (content)
