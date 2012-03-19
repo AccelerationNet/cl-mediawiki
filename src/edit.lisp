@@ -171,7 +171,8 @@ returns values:
 (defun upload (path &key
 		      (filename (file-namestring path))
 		      (comment "uploaded via cl-mediawiki")
-		      ignorewarnings)
+		      ignorewarnings
+                    &aux (path (truename path)))
   "uploads a file from a local path.
 
 returns 2 values:
