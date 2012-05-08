@@ -173,6 +173,38 @@ Parameters:
  Returns: a string with the given page content
 ")
 
+(define-proxy %parse-text-sections
+    :core ((action parse)
+	   (prop sections))
+  :req (text)
+  :processor
+  (lambda (sxml)
+    (mapcar
+     #'(lambda (s &aux (attrs (second s)))
+	 ;; s looks like:
+	 ;; ("s"
+	 ;;  (("anchor" "HREF_ANCHOR") ("byteoffset" "")
+	 ;;  ("fromtitle" "PAGE TITLE") ("index" "T-2") ("number" "1.1")
+	 ;;  ("line" "SECTION TITLE") ("level" "3") ("toclevel" "2")))
+
+	 (flet ((find-attr (name)
+		  (second
+		   (find name attrs :key #'first :test #'string-equal))))
+	 (list
+	  (find-attr "number")
+	  (find-attr "line")
+	  (find-attr "anchor"))))
+     (find-nodes-by-name "s" sxml)))
+  :doc "parses the given text and lists sections in that content.
+returns list of (number name anchor)")
+
+(defun list-page-sections (page-title)
+  "lists sections in a page, returns list of (number name anchor)"
+  ;; ask wiki to parse some markup and show the text sections,
+  ;; crafting the markup to return the desired page
+  ;; see http://lists.wikimedia.org/pipermail/mediawiki-api/2008-March/000392.html
+  (%parse-text-sections (format nil "{{:~a}}__TOC__" page-title)))
+
 (define-proxy pages-that-embed
     :core ((action query)
 	   (list embeddedin))

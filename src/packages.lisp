@@ -18,6 +18,7 @@
    #:get-links
    #:get-revisions
    #:get-revisions-result
+   #:list-page-sections
    ;; query/query-result
    #:query-result
    #:has-more-results-p
