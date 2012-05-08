@@ -156,6 +156,27 @@ returns values:
       (make-api-request parameters :method :post)))
     ))
 
+(defun set-section-content (title rvsection text
+				  &key (summary "cl-mediawiki:set-section-content"))
+  "Sets the text of section 'rvsection' on page 'title' to 'text'. 'text' MUST contain the section title markup!"
+  (check-type rvsection (integer 1) "an index of what section to set, use list-page-sections to identify the right number. Increments sequentially down the page.")
+  (unless (string-equal "==" (subseq text 0 2))
+    (error "Cannot set content of ~a section ~a, no section title detect in new content: ~a " rvsection title text))
+  (let* ((tokens (get-action-tokens title))
+	 (parameters
+	  (make-parameters
+	   `((action edit)
+	     (token ,(edit-token tokens))
+	     (title ,title)
+	     (section ,rvsection)
+	     (summary ,summary)
+	     (basetimestamp ,(timestamp tokens))
+	     (text ,text)))))
+      (check-edit-response
+       title
+       (parse-api-response-to-sxml
+	(make-api-request parameters :method :post)))))
+
 #+cl-ppcre
 (defun regex-replace-all (regex target-page replacement  &key default-content (summary "cl-mediawiki:regex-replace-all"))
   "Does a regex find/replace on the target page. If the page is empty, will set to default content if provided

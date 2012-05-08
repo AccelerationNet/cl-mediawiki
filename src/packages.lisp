@@ -26,6 +26,7 @@
    #:results
    ;; EDIT
    #:set-page-content
+   #:set-section-content
    #:append-text-to-page
    #:add-new-page-section
    #:create-page
