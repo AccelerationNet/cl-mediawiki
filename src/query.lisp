@@ -178,7 +178,7 @@ Parameters:
 	   (prop sections))
   :req (text)
   :processor
-  (lambda (sxml)
+  (lambda (sxml &aux (rvsection 0))
     (mapcar
      #'(lambda (s &aux (attrs (second s)))
 	 ;; s looks like:
@@ -193,13 +193,17 @@ Parameters:
 	 (list
 	  (find-attr "number")
 	  (find-attr "line")
-	  (find-attr "anchor"))))
+	  (find-attr "anchor")
+	  (incf rvsection))))
      (find-nodes-by-name "s" sxml)))
   :doc "parses the given text and lists sections in that content.
-returns list of (number name anchor)")
+returns list of (number name anchor rvsection)")
 
 (defun list-page-sections (page-title)
-  "lists sections in a page, returns list of (number name anchor)"
+  "lists sections in a page, returns list of (number name anchor rvsection)
+
+rvsection is suitable to for the :rvsection param of get-page-content
+"
   ;; ask wiki to parse some markup and show the text sections,
   ;; crafting the markup to return the desired page
   ;; see http://lists.wikimedia.org/pipermail/mediawiki-api/2008-March/000392.html
