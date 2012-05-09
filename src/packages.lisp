@@ -29,6 +29,7 @@
    #:set-page-content
    #:set-section-content
    #:append-text-to-page
+   #:prepend-text-to-page
    #:add-new-page-section
    #:create-page
    #:regex-replace-all
