@@ -159,6 +159,8 @@ returns values:
 (defun set-section-content (title rvsection text
 				  &key (summary "cl-mediawiki:set-section-content"))
   "Sets the text of section 'rvsection' on page 'title' to 'text'. 'text' MUST contain the section title markup!"
+  ;; see http://lists.wikimedia.org/pipermail/mediawiki-api/2008-March/000390.html for
+  ;; a description of rvsection
   (check-type rvsection (integer 1) "an index of what section to set, use list-page-sections to identify the right number. Increments sequentially down the page.")
   (unless (string-equal "==" (subseq text 0 2))
     (error "Cannot set content of ~a section ~a, no section title detect in new content: ~a " rvsection title text))
