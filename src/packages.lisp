@@ -19,6 +19,7 @@
    #:get-revisions
    #:get-revisions-result
    #:list-page-sections
+   #:find-page-section
    ;; query/query-result
    #:query-result
    #:has-more-results-p

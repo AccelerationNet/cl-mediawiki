@@ -209,6 +209,12 @@ rvsection is suitable to for the :rvsection param of get-page-content
   ;; see http://lists.wikimedia.org/pipermail/mediawiki-api/2008-March/000392.html
   (%parse-text-sections (format nil "{{:~a}}__TOC__" page-title)))
 
+(defun find-page-section (page-title section-name)
+  "searches the the given page for the given section name. returns nil or (number name anchor rvsection)"
+  (find section-name (list-page-sections page-title)
+	:key #'second
+	:test #'string-equal))
+
 (define-proxy pages-that-embed
     :core ((action query)
 	   (list embeddedin))
