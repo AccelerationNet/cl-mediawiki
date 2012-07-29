@@ -171,6 +171,8 @@ returns values:
 (defun upload (path &key
 		      (filename (file-namestring path))
 		      (comment "uploaded via cl-mediawiki")
+		      (text "")
+		      watch
 		      ignorewarnings
                     &aux (path (truename path)))
   "uploads a file from a local path.
@@ -186,6 +188,8 @@ returns 2 values:
 	     (filename ,filename)
 	     (file ,(truename path))
 	     (comment ,comment)
+	     (text ,text)
+	     (watch ,(if watch 1 0))
 	     (ignorewarnings ,(if ignorewarnings 1 0))
 	     ))))
     (multiple-value-bind (xml node-attrs)
