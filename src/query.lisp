@@ -297,6 +297,71 @@ Parameters:
  Returns: an alist of attributes about the page
 ")
 
+(define-proxy get-image-info
+  :core ((action query)
+         (prop imageinfo))
+  :req (titles)
+  :props ((iiprop "timestamp|user|comment|url|size|sha1|mime|metadata|archivename")
+          iilimit iistart iiend iiurlwidth iiurlheight)
+  :processor
+  (lambda (sxml)
+    (flet ((extract-info (ii)
+             "Gets the image info from the <ii> tag II, from its property list and its <metadata> child if present."
+             (let* ((props (convert-sxml-attribs-to-alist (second ii)))
+                    (metadata-prop (assoc :metadata props))
+                    (metadata (find-nodes-by-name "metadata" ii)))
+               (cond
+                 (metadata
+                  (cons (cons :metadata
+                              (loop for (nil attrs) in (rest metadata)
+                                    collecting
+                                    (cons (symbolize-string
+                                           (second (assoc "name" attrs
+                                                          :test #'equal)))
+                                          (second (assoc "value" attrs
+                                                         :test #'equal)))))
+                        props))
+                 ;; it appears that when metadata was requested and the file has
+                 ;; no metadata, there is no metadata child (i.e. METADATA is
+                 ;; nil) and the <ii> has an empty "metadata" attribute 
+                 (metadata-prop
+                  (setf (cdr metadata-prop) nil)
+                  props)
+                 (t
+                  props)))))
+      (let* ((imageinfo (first (find-nodes-by-name "imageinfo" sxml)))
+             ;; one <ii> per revision
+             (revisions (mapcar #'extract-info (find-nodes-by-name "ii" imageinfo)))
+             (c-blob (first (find-nodes-by-name
+                             "imageinfo"
+                             (first (find-nodes-by-name "query-continue" sxml)))))
+             (continuation (when c-blob
+                             (destructuring-bind (_ ((__ continuation))) c-blob
+                               (declare (ignore _ __))
+                               continuation))))
+        (values revisions continuation))))
+  :doc
+  "Gets the info for a given image (or file) as an alist
+
+Parameters:
+  titles - the title of the image we wish to retrieve the info of
+  iiprop - Which properties to get
+           Possible values (separate with '|'): timestamp, user, comment, url,
+           size, sha1, mime, metadata, archivename. Default is all.
+  iilimit - How many image revisions to return (1 by default)
+  iistart - Timestamp to start listing from. Use this to continue a previous 
+            query.
+  iiend - Timestamp to stop listing at
+  iiurlwidth - If iiprop=url is set, a URL to an image scaled to this width will
+               be returned as well. Old versions of images can't be scaled
+  iiurlheight - Similar to iiurlwidth
+
+Example: (get-image-info \"Image:Albert Einstein Head.jpg\" :iiprop \"user|comment\")
+
+Returns: a list of alists of attributes about the requested revisions of the
+         image, and a continuation if there is one.
+")
+
 (define-proxy get-revisions
     :core ((action query)
 	   (prop revisions))
