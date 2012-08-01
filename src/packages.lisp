@@ -34,6 +34,7 @@
    #:create-page
    #:regex-replace-all
    #:get-page-info
+   #:get-image-info
    #:pages-that-embed
    #:upload)
   (:documentation 
