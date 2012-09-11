@@ -13,8 +13,10 @@ returns values:
   "
 
   (check-sxml-for-error xml)
-  (let* ((kid (first
-	       (find-nodes-by-name name xml)))
+  (let* ((matches (find-nodes-by-name name xml))
+         ;; if we have more than match, then odds are we're getting warnings.
+         (kid (if (eq 1 (length matches)) (first matches)
+                  (second matches)))
 	 (alist (second kid)))
     (unless alist
       (error 'media-wiki-error
