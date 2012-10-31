@@ -32,6 +32,6 @@
   :depends-on (:cl-mediawiki :lisp-unit))
 
 (defmethod asdf:perform ((o asdf:test-op) (c (eql (find-system :cl-mediawiki))))
-  (asdf:oos 'asdf:load-op :cl-mediawiki-test)
-  (funcall (intern "RUN-TESTS" :cl-mediawiki-test)
-	   :use-debugger nil))
+  (asdf:load-system :cl-mediawiki-test)
+  (let ((*package* (find-package :cl-mediawiki-test)))
+    (eval (read-from-string "(run-tests)"))))

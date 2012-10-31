@@ -59,9 +59,7 @@
 	 (out (with-output-to-string (s)
 		(let ((*standard-output*
                         (make-broadcast-stream s actual-std-out)))
-                  (if (null tests)
-                      (lisp-unit::%run-all-thunks)
-                      (lisp-unit::%run-thunks tests))))))
+                  (lisp-unit::run-tests (or tests :all))))))
     (format *standard-output*
      "~&~% ** TEST RESULTS: CL-MEDIAWIKI ** ~%-----------~%~A~%------ END TEST RESULTS ------~%"
      out)))
