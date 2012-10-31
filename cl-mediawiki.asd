@@ -34,4 +34,4 @@
 (defmethod asdf:perform ((o asdf:test-op) (c (eql (find-system :cl-mediawiki))))
   (asdf:load-system :cl-mediawiki-test)
   (let ((*package* (find-package :cl-mediawiki-test)))
-    (eval (read-from-string "(run-tests)"))))
+    (eval (read-from-string "(run-tests :use-debugger nil)"))))

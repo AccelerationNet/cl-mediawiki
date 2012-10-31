@@ -48,7 +48,7 @@
        )))
 
 (defun run-tests (&key suites tests (use-debugger T))
-  (let* ((*package* (find-package :buildnode-test))
+  (let* ((*package* (find-package :cl-mediawiki-test))
          (lisp-unit:*print-failures* t)
          (lisp-unit:*print-errors* t)
 	 (lisp-unit::*use-debugger* use-debugger)
