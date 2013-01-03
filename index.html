@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Cl-mediawiki : A Common Lisp wrapper around the MediaWiki api" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Cl-mediawiki</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/AccelerationNet/cl-mediawiki">View on GitHub</a>
+
+          <h1 id="project_title">Cl-mediawiki</h1>
+          <h2 id="project_tagline">A Common Lisp wrapper around the MediaWiki api</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/AccelerationNet/cl-mediawiki/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/AccelerationNet/cl-mediawiki/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>CL-MediaWiki</h1>
+
+<p>This is a project to help make the <a href="http://www.mediawiki.org/wiki/API">MediaWiki API</a> accessible and easy to use from Common Lisp.  While this project is currently sparsely populated, what commands are there should work.  Patches Welcome!</p>
+
+<h2>Supported API</h2>
+
+<ul>
+<li>Edit
+
+<ul>
+<li>create-page - Creates a new wiki page</li>
+<li>add-new-page-section - adds a new section to the specified wiki page</li>
+<li>append-text-to-page / prepend-text-to-page - adds text at the top or bottom of the specified page</li>
+<li>set-page-content - sets a pages content to the specified text</li>
+<li>regex-replace-all - replace all instances of regex with replacement on a target-page.  There is an option for passing what the page content should be if it does not exist</li>
+</ul>
+</li>
+<li>Query 
+
+<ul>
+<li>token-bag - an object to store action tokens with a time stamp (to prevent overriding someone else's change</li>
+<li>get-action-tokens - requests and returns a token-bag for an edit/move/delete</li>
+<li>get-page-content - returns the content of the most recent revision of a page</li>
+<li>get-page-info - returns the properties of a page as an alist</li>
+<li>get-revisions - returns revision history of a page, including contents and diffs</li>
+<li>get-links - returns outgoing links from a page</li>
+<li>pages-that-embed - returns a list of pages that embed another page/template</li>
+<li>recent-changes - a list of recent changes to the wiki</li>
+<li>user-contribs - a list of contributions from a specific user</li>
+</ul>
+</li>
+<li>Conditions 
+
+<ul>
+<li>Errors</li>
+<li>media-wiki-error - signaled when media wiki returns an error</li>
+</ul>
+</li>
+</ul><h2>Example</h2>
+
+<div class="highlight"><pre><span class="c1">;; Gets the content of page "Pigment" from wikipedia</span>
+<span class="p">(</span><span class="nv">with-mediawiki</span> <span class="p">(</span><span class="s">"http://en.wikipedia.org/w"</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">get-page-content</span> <span class="s">"Pigment"</span><span class="p">))</span>
+
+<span class="c1">;; Gets the content of page "Pigment" from a private mediawiki that</span>
+<span class="c1">;; requires authentication</span>
+<span class="p">(</span><span class="nv">with-mediawiki</span> <span class="p">((</span><span class="nb">make-instance</span> <span class="ss">'mediawiki</span>
+                 <span class="ss">:url</span> <span class="s">"http://wiki.yourdomain.net"</span>
+                 <span class="ss">:auth</span> <span class="p">(</span><span class="nb">list</span> <span class="s">"user"</span> <span class="s">"pass"</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nv">get-page-content</span> <span class="s">"Pigment"</span><span class="p">))</span>
+
+<span class="c1">;; Sets the content of page "Pigment" to be "This is the new content"</span>
+<span class="p">(</span><span class="nv">with-mediawiki</span> <span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">set-page-content</span> <span class="s">"Pigment"</span> <span class="s">"This is the new content"</span><span class="p">))</span>
+
+<span class="c1">;; Get the ids, user, and size of the last 10 revisions </span>
+<span class="p">(</span><span class="nv">with-mediawiki</span> <span class="p">(</span><span class="s">"http://en.wikipedia.org/w"</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">get-revisions</span> <span class="s">"Pigment"</span> <span class="ss">:rvprop</span> <span class="s">"ids|user|size"</span> <span class="ss">:rvlimit</span> <span class="mi">10</span><span class="p">))</span>
+</pre></div>
+
+<h2>Dependencies</h2>
+
+<ul>
+<li><a href="http://common-lisp.net/project/cxml/">Closure-XML</a></li>
+<li><a href="http://weitz.de/drakma/">Drakma</a></li>
+</ul><h2>Optional Dependencies</h2>
+
+<ul>
+<li>
+<a href="http://weitz.de/cl-ppcre/">CL-PPCRE</a> - If you have this installed, there will be a couple more functions available</li>
+</ul><h2>News</h2>
+
+<ul>
+<li><a href="http://russ.unwashedmeme.com/blog/?p=135">Hosting Move Announcement</a></li>
+<li><a href="http://russ.unwashedmeme.com/blog/?p=52">Blagging about my first in system usage of CL-MediaWiki</a></li>
+<li><a href="http://russ.unwashedmeme.com/blog/?p=43">Introductory Blog Post</a></li>
+</ul><h2>Authors</h2>
+
+<ul>
+<li>
+<a href="http://www.acceleration.net/">Acceleration.net</a>
+
+<ul>
+<li><a href="http://russ.unwashedmeme.com/blog">Russ Tyndall</a></li>
+<li><a href="http://the.unwashedmeme.com/blog">Nathan Bird</a></li>
+<li><a href="http://ryepup.unwashedmeme.com/blog">Ryan Davis</a></li>
+</ul>
+</li>
+<li><a href="https://github.com/algal">Alexis Gallagher</a></li>
+</ul><h2>License</h2>
+
+<pre>
+;; Copyright (c) 2011 Russ Tyndall , Acceleration.net http://www.acceleration.net
+;; All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are
+;; met:
+;;
+;;  - Redistributions of source code must retain the above copyright
+;;    notice, this list of conditions and the following disclaimer.
+;;
+;;  - Redistributions in binary form must reproduce the above copyright
+;;    notice, this list of conditions and the following disclaimer in the
+;;    documentation and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+;; "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+;; LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+;; A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT
+;; OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+;; SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+;; LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+;; DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+;; THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+;; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+;; OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</pre>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Cl-mediawiki maintained by <a href="https://github.com/AccelerationNet">AccelerationNet</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
