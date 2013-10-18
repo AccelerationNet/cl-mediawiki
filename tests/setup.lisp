@@ -2,6 +2,7 @@
 (defpackage :net.acceleration.cl-mediawiki-test
     (:nicknames #:cl-mediawiki-test)
   (:use :common-lisp :cxml :lisp-unit :cl-mediawiki)
+  (:shadowing-import-from :cl-mediawiki :results)
   (:shadow :cdata :run-tests))
 
 (in-package :cl-mediawiki-test)
