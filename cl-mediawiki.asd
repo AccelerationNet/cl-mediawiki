@@ -29,9 +29,9 @@
 				     (:file "edit"))))
   ;; Additional Functionality will be loaded if cl-ppcre is in
   ;; the features list during compilation
-  :depends-on (:cl-mediawiki :lisp-unit))
+  :depends-on (:cl-mediawiki :lisp-unit2))
 
 (defmethod asdf:perform ((o asdf:test-op) (c (eql (find-system :cl-mediawiki))))
   (asdf:load-system :cl-mediawiki-test)
   (let ((*package* (find-package :cl-mediawiki-test)))
-    (eval (read-from-string "(run-tests :use-debugger nil)"))))
+    (eval (read-from-string "(run-tests)"))))
