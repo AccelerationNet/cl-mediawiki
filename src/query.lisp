@@ -620,6 +620,29 @@ Parameters:
   apfrom         - Start listing at this title. The title need not exist
 ")
 
+(define-proxy list-all-users
+  :core ((action query)
+         (list allusers))
+  :props (aulimit aufrom)
+  :processor
+  (lambda (sxml)
+    (mapcar #'(lambda (n)
+                (convert-sxml-attribs-to-alist
+                 (cadr n)))
+            (cddr (first (cddr (find "query" (cddr sxml)
+                                     :key #'first
+                                     :test #'string-equal)))))
+    ;sxml
+    )
+  :doc
+    "  List all users.
+Parameters:
+  aulimit        - The maximum number of contributions to return.
+                   No more than 500 (5000 for bots) allowed.
+                   Default: 10
+  aufrom         - Start listing at this user.
+")
+
 ;;;; query-result and friends
 ;; a query-result eStart listing at this title. The title need not ncapsulates the response to a query, and allows
 ;; for repeated follow-up queries
