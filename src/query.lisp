@@ -66,7 +66,6 @@ Parameters:
 Example:
   api.php?action=login&lgname=user&lgpassword=password ")
 
-
 (define-proxy list-category-members
     :core ((action query)
             (list categorymembers))
@@ -112,7 +111,6 @@ Parameters:
     alist keys are: :title :ns :pageid
 "
     )
-
 
 #| Some experimenting indicates that, at least for queries
 where ((action query) (prop revisions) (rvprop content)), the
@@ -517,7 +515,6 @@ Examples:
                 (let ((secondresults (get-links \"Pigment\" :pllimit 10 :plcontinue continuation-token)))
                   (list firstresults secondresults)))
 ")
-
 
 (define-proxy recent-changes
     :core ((action query)
