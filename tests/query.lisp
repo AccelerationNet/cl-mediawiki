@@ -4,7 +4,7 @@
   (assert-true
    (cl-mediawiki:get-page-content "Pigment")))
 
-(def-test-wikipedia get-action-tokens-test (query)  
+(def-test-wikipedia get-action-tokens-test (query)
   (assert-true
       (cl-mediawiki:get-action-tokens "Pigment")))
 

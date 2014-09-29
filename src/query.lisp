@@ -1,4 +1,4 @@
-;; See ../LICENSE  for info 
+;; See ../LICENSE  for info
 (in-package :cl-mediawiki)
 
 (eval-when  (:compile-toplevel :load-toplevel :execute)
@@ -13,36 +13,36 @@ from the CORE list and passed to the MAKE-PARAMETERS function."
   ;; get the args that are not in req and are found in either based-on or props
   ;; Also add default params if necessary
   (let* ((kw-params (set-difference
-		     (union props
-			    (if (eq 'query (cadr (assoc 'action core)))
-				(union based-on +default-query-params+)
-				based-on))
-		     req)))
+                     (union props
+                            (if (eq 'query (cadr (assoc 'action core)))
+                                (union based-on +default-query-params+)
+                                based-on))
+                     req)))
     (let ((par-sym (gensym)))
       `(defun ,name (,@req &key ,@kw-params) ,(if doc doc "no documentation given")
-	 (let ((,par-sym (make-parameters
-			  (list ,@(mapcar #'(lambda (x) (if (listp x)
-							    `(list ',(car x) ',(cadr x))))
-					  core)
-				,@(mapcar #'(lambda (x) (if (listp x)
-							    `(list ',(car x) ,(car x))
-							    `(list ',x ,x)))
-					  (concatenate 'list req kw-params ))))))
-					;(print ,par-sym)
-	   (funcall #',processor
-		    (parse-api-response-to-sxml (make-api-request ,par-sym :method ,method))))))))
+         (let ((,par-sym (make-parameters
+                          (list ,@(mapcar #'(lambda (x) (if (listp x)
+                                                            `(list ',(car x) ',(cadr x))))
+                                          core)
+                                ,@(mapcar #'(lambda (x) (if (listp x)
+                                                            `(list ',(car x) ,(car x))
+                                                            `(list ',x ,x)))
+                                          (concatenate 'list req kw-params ))))))
+                                        ;(print ,par-sym)
+           (funcall #',processor
+                    (parse-api-response-to-sxml (make-api-request ,par-sym :method ,method))))))))
 
 (defun login (lgname lgpassword &key lgdomain)
   ;;login is a 2 step process.  http://www.mediawiki.org/wiki/API:Login
   (let* ((sxml (%login lgname lgpassword :lgdomain lgdomain))
-	 (login-attrs (cadar (find-nodes-by-name "login" sxml)))
-	 (result (cadr (find "result" login-attrs
-			     :test #'string= :key #'car))))
+         (login-attrs (cadar (find-nodes-by-name "login" sxml)))
+         (result (cadr (find "result" login-attrs
+                             :test #'string= :key #'car))))
     (if (string= result "NeedToken")
-	(%login lgname lgpassword :lgdomain lgdomain
-		:lgtoken (cadr (find "token" login-attrs
-				     :test #'string= :key #'car)))
-	sxml)))
+        (%login lgname lgpassword :lgdomain lgdomain
+                :lgtoken (cadr (find "token" login-attrs
+                                     :test #'string= :key #'car)))
+        sxml)))
 
 (define-proxy %login
     :core ((action login))
@@ -51,9 +51,9 @@ from the CORE list and passed to the MAKE-PARAMETERS function."
     :method :POST
     :doc
     "
-  This module is used to login and get the authentication tokens. 
+  This module is used to login and get the authentication tokens.
   In the event of a successful log-in, a cookie will be attached
-  to your session. In the event of a failed log-in, you will not 
+  to your session. In the event of a failed log-in, you will not
   be able to attempt another log-in through this method for 5 seconds.
   This is to prevent password guessing by automated password crackers.
 
@@ -69,17 +69,17 @@ Example:
 
 (define-proxy list-category-members
     :core ((action query)
-	    (list categorymembers))
+            (list categorymembers))
   :req (cmtitle)
   :based-on (version maxlag smaxage maxage requestid titles pageids revids prop
-		     meta generator redirects indexpageids)
+                     meta generator redirects indexpageids)
   :props (cmprop cmnamespace cmcontinue cmlimit cmsort cmdir cmstart cmend cmstartsortkey cmendsortkey)
   :processor
   (lambda (sxml)
-    (let ((rows (find-nodes-by-name "cm" sxml)))  
+    (let ((rows (find-nodes-by-name "cm" sxml)))
       (loop for row in rows
-	    collecting (loop for (attr val) in (second row)
-			     collecting (list (symbolize-string attr) val) ))) )
+            collecting (loop for (attr val) in (second row)
+                             collecting (list (symbolize-string attr) val) ))) )
   :doc
     "List all pages in a given category.
 
@@ -116,7 +116,7 @@ Parameters:
 
 #| Some experimenting indicates that, at least for queries
 where ((action query) (prop revisions) (rvprop content)), the
-parameters titles and revids are mutually exclusive. 
+parameters titles and revids are mutually exclusive.
 
 The following implementation is therefore broken. By requiring titles,
 it prevents you from doing queries that specified a particular
@@ -124,13 +124,13 @@ revision id, for instance. |#
 
 (define-proxy get-page-content
     :core ((action query)
-	   (prop revisions)
-	   (rvprop content))
+           (prop revisions)
+           (rvprop content))
   :req (titles)
   :props (rvsection)
   :processor
   (lambda (sxml)
-    (let ((rows (find-nodes-by-name "rev" sxml)))  
+    (let ((rows (find-nodes-by-name "rev" sxml)))
       (third (first rows))))
   :doc
     "Get the content for a given page.
@@ -151,8 +151,8 @@ Parameters:
 
 (define-proxy get-page-content-by-revid
     :core ((action query)
-	   (prop revisions)
-	   (rvprop content))
+           (prop revisions)
+           (rvprop content))
   :req (revids)
   :props (rvsection)
   :processor
@@ -175,26 +175,26 @@ Parameters:
 
 (define-proxy %parse-text-sections
     :core ((action parse)
-	   (prop sections))
+           (prop sections))
   :req (text)
   :processor
   (lambda (sxml &aux (rvsection 0))
     (mapcar
      #'(lambda (s &aux (attrs (second s)))
-	 ;; s looks like:
-	 ;; ("s"
-	 ;;  (("anchor" "HREF_ANCHOR") ("byteoffset" "")
-	 ;;  ("fromtitle" "PAGE TITLE") ("index" "T-2") ("number" "1.1")
-	 ;;  ("line" "SECTION TITLE") ("level" "3") ("toclevel" "2")))
+         ;; s looks like:
+         ;; ("s"
+         ;;  (("anchor" "HREF_ANCHOR") ("byteoffset" "")
+         ;;  ("fromtitle" "PAGE TITLE") ("index" "T-2") ("number" "1.1")
+         ;;  ("line" "SECTION TITLE") ("level" "3") ("toclevel" "2")))
 
-	 (flet ((find-attr (name)
-		  (second
-		   (find name attrs :key #'first :test #'string-equal))))
-	 (list
-	  (find-attr "number")
-	  (find-attr "line")
-	  (find-attr "anchor")
-	  (incf rvsection))))
+         (flet ((find-attr (name)
+                  (second
+                   (find name attrs :key #'first :test #'string-equal))))
+         (list
+          (find-attr "number")
+          (find-attr "line")
+          (find-attr "anchor")
+          (incf rvsection))))
      (find-nodes-by-name "s" sxml)))
   :doc "parses the given text and lists sections in that content.
 returns list of (number name anchor rvsection)")
@@ -212,29 +212,29 @@ rvsection is suitable to for the :rvsection param of get-page-content
 (defun find-page-section (page-title section-name)
   "searches the the given page for the given section name. returns nil or (number name anchor rvsection)"
   (find section-name (list-page-sections page-title)
-	:key #'second
-	:test #'string-equal))
+        :key #'second
+        :test #'string-equal))
 
 (define-proxy pages-that-embed
     :core ((action query)
-	   (list embeddedin))
+           (list embeddedin))
   :req (eititle)
   :props (eicontinue einamespace eifilterredir eilimit)
   :processor
   (lambda (sxml)
     (let* ((rows (find-nodes-by-name "ei" sxml))
-	   (c-blob (first (find-nodes-by-name
-			   "embeddedin"
-			   (first (find-nodes-by-name "query-continue" sxml)))))
- 	   (continuation (when c-blob
- 			   (destructuring-bind (_1 ((_2 continuation))) c-blob
- 			     (declare (ignore _1 _2))
- 			     continuation)))
-	  titles)
+           (c-blob (first (find-nodes-by-name
+                           "embeddedin"
+                           (first (find-nodes-by-name "query-continue" sxml)))))
+           (continuation (when c-blob
+                           (destructuring-bind (_1 ((_2 continuation))) c-blob
+                             (declare (ignore _1 _2))
+                             continuation)))
+          titles)
       (loop for row in rows
-	    do (destructuring-bind (_1 ((_2 title) &rest _3)) row
-		   (declare (ignore _1 _2 _3))
-		   (push title titles)))
+            do (destructuring-bind (_1 ((_2 title) &rest _3)) row
+                   (declare (ignore _1 _2 _3))
+                   (push title titles)))
       (values (nreverse titles) continuation)))
   :doc
     "List pages that embed a given template or other page
@@ -261,12 +261,12 @@ Parameters:
        :documentation "An alist of page attributes returned by the api")
    (timestamp :accessor timestamp :initarg :timestamp :initform nil)
    (tokens :accessor tokens :initarg :tokens :initform nil
-	   :documentation "either a single token, or an
+           :documentation "either a single token, or an
             alist mapping type to value" )))
 
 (defmethod print-object ((token-bag token-bag) stream)
   (with-accessors ((timestamp timestamp)
-		   (tokens tokens)) token-bag
+                   (tokens tokens)) token-bag
     (format stream "#<Token-bag ~a ~a>" timestamp tokens)))
 
 (defmethod edit-token ((token-bag token-bag))
@@ -280,33 +280,33 @@ Parameters:
 
 (define-proxy get-action-tokens
     :core ((action query)
-	   (rvprop timestamp)
-	   (prop "info|revisions"))
+           (rvprop timestamp)
+           (prop "info|revisions"))
   :req (titles)
   :props ((intoken :edit))
   :processor
   (lambda (sxml)
     (let ((pages (find-nodes-by-name "page" sxml)))
       (let ((result (loop for (page alist . children) in pages
-			  collecting
-		       (make-instance
-			    'token-bag
-			    :page-attributes (convert-sxml-attribs-to-alist alist)
-			    :tokens
-			    (loop for token in (ensure-list intoken)
-				  collecting
-			       (cons token
-				     (sxml-attribute-value (format nil "~atoken" token) alist)))
-			    ;; The timestamp on the tokens bag may be incorrect, its better to
-			    ;; look at the revision history for the correct one
-			    :timestamp (let ((rev (first (loop for child in children
-							       for res = (find-nodes-by-name "rev" child)
-							       until res
-							       finally (return res)))))
-					 (if rev
-					   (sxml-attribute-value "timestamp" (second rev))
-					   (sxml-attribute-value "touched" alist)))))))
-	(if (eq 1 (length result)) (car result) result))))
+                          collecting
+                       (make-instance
+                            'token-bag
+                            :page-attributes (convert-sxml-attribs-to-alist alist)
+                            :tokens
+                            (loop for token in (ensure-list intoken)
+                                  collecting
+                               (cons token
+                                     (sxml-attribute-value (format nil "~atoken" token) alist)))
+                            ;; The timestamp on the tokens bag may be incorrect, its better to
+                            ;; look at the revision history for the correct one
+                            :timestamp (let ((rev (first (loop for child in children
+                                                               for res = (find-nodes-by-name "rev" child)
+                                                               until res
+                                                               finally (return res)))))
+                                         (if rev
+                                           (sxml-attribute-value "timestamp" (second rev))
+                                           (sxml-attribute-value "touched" alist)))))))
+        (if (eq 1 (length result)) (car result) result))))
   :doc
     "Gets the tokens necessary for perform edits.
 
@@ -318,12 +318,12 @@ Parameters:
            (get-action-tokens \"Physics\" :intoken '(:edit :move :delete))
            (get-action-tokens '(\"Main Page\" \"User:Russ\") :intoken '(:move :edit :delete :protect))
 
- Returns: a token bag (or list of them if you asked for multiple pages) 
+ Returns: a token bag (or list of them if you asked for multiple pages)
 ")
 
 (define-proxy get-page-info
     :core ((action query)
-	   (prop info))
+           (prop info))
   :req (titles)
   :processor
   (lambda (sxml)
@@ -365,7 +365,7 @@ Parameters:
                         props))
                  ;; it appears that when metadata was requested and the file has
                  ;; no metadata, there is no metadata child (i.e. METADATA is
-                 ;; nil) and the <ii> has an empty "metadata" attribute 
+                 ;; nil) and the <ii> has an empty "metadata" attribute
                  (metadata-prop
                   (setf (cdr metadata-prop) nil)
                   props)
@@ -391,7 +391,7 @@ Parameters:
            Possible values (separate with '|'): timestamp, user, comment, url,
            size, sha1, mime, metadata, archivename. Default is all.
   iilimit - How many image revisions to return (1 by default)
-  iistart - Timestamp to start listing from. Use this to continue a previous 
+  iistart - Timestamp to start listing from. Use this to continue a previous
             query.
   iiend - Timestamp to stop listing at
   iiurlwidth - If iiprop=url is set, a URL to an image scaled to this width will
@@ -406,11 +406,11 @@ Returns: a list of alists of attributes about the requested revisions of the
 
 (define-proxy get-revisions
     :core ((action query)
-	   (prop revisions))
+           (prop revisions))
     :req (titles)
-    :props ((rvprop "ids|flags|timestamp|user|comment|size") 
-	    (rvlimit 550) rvstartid rvendid rvstart rvend rvdir rvuser 
-	    rvexcludeuser rvcontinue rvdiffto)
+    :props ((rvprop "ids|flags|timestamp|user|comment|size")
+            (rvlimit 550) rvstartid rvendid rvstart rvend rvdir rvuser
+            rvexcludeuser rvcontinue rvdiffto)
     :processor
     (lambda (sxml)
 ;;    (format *debug-io* "~&get-revisions processing sxml== ~S" sxml) ; debug
@@ -433,10 +433,10 @@ This ad-hoc parsing makes me sad."
                           attribs))
                         (attribs-with-content
                          (cond          ; <rev attrs... />
-                           ((null revcontent) 
+                           ((null revcontent)
                             attribs-filtered)
                                         ; <rev attrs...>content</rev>
-                           ((stringp revcontent) 
+                           ((stringp revcontent)
                              (cons (list "content" revcontent) attribs-filtered))
                                         ; <rev attrs...><diff>DIFFCONTENT</diff></rev>
                            ((and (listp revcontent) (equal (first revcontent) "diff"))
@@ -449,54 +449,54 @@ This ad-hoc parsing makes me sad."
                (c-blob (first (find-nodes-by-name "query-continue" sxml))))
           (values revs (when c-blob
                          (destructuring-bind (_1 _2 (_3 ((_4 continuation)))) c-blob
-			   (declare (ignore _1 _2 _3 _4))
-			   continuation))))))
+                           (declare (ignore _1 _2 _3 _4))
+                           continuation))))))
     :doc
     "Gets the revisions of a page.
 
 Parameters:
   titles         - the title of the page we wish to retrieve the info of
   rvprop:        - Which properties to get for each revision
-                   Possible values (separate with '|'): ids, flags, timestamp, 
+                   Possible values (separate with '|'): ids, flags, timestamp,
                    user, comment, size, content. Default is all except content.
   rvcontinue: -    When more results are available, use this to continue
                    (This is different from the returned continuation.)
-  rvlimit: 	 - The maximum number of revisions to return (enum)
-  rvstartid: 	 - Revision ID to start listing from. (enum)
-  rvendid: 	 - Revision ID to stop listing at. (enum)
-  rvstart: 	 - Timestamp to start listing from. (enum)
-  rvend: 	 - Timestamp to end listing at. (enum)
-  rvdir: 	 - Direction to list in. (enum)
+  rvlimit:       - The maximum number of revisions to return (enum)
+  rvstartid:     - Revision ID to start listing from. (enum)
+  rvendid:       - Revision ID to stop listing at. (enum)
+  rvstart:       - Timestamp to start listing from. (enum)
+  rvend:         - Timestamp to end listing at. (enum)
+  rvdir:         - Direction to list in. (enum)
                    Possible values: older, newer.
                    Default: older
-  rvuser: 	 - Only list revisions made by this user
+  rvuser:        - Only list revisions made by this user
   rvexcludeuser: - Do not list revisions made by this user
   rvdiffto:      - Revision ID to diff each revision to.
-                   Possible values (an id, \"prev\", \"next\" or \"cur\"). 
+                   Possible values (an id, \"prev\", \"next\" or \"cur\").
 
  Examples: (get-revisions \"Pigment\" :rvprop \"ids|user|size\" :rvlimit 10)
            (get-revisions \"Physics\" :rvlimit 10)
 
- Returns: list of revisions as alists and (if there is one) a continuation, 
+ Returns: list of revisions as alists and (if there is one) a continuation,
 which is the rvstart id to pass in the next call to get more results.
 ")
 
 (define-proxy get-links
     :core ((action query)
-	   (prop links))
+           (prop links))
     :req (titles)
-    :props ((pllimit 5000) 
-	    (plnamespace nil)
-	    plcontinue)
+    :props ((pllimit 5000)
+            (plnamespace nil)
+            plcontinue)
     :processor
     (lambda (sxml)
       (let ((links (mapcar #'(lambda (n) (convert-sxml-attribs-to-alist (second n)))
-			  (find-nodes-by-name "pl" sxml)))
-	    (c-blob (first (find-nodes-by-name "query-continue" sxml))))
-	(values links (when c-blob
-		       (destructuring-bind (_1 _2 (_3 ((_4 continuation)))) c-blob
-			   (declare (ignore _1 _2 _3 _4))
-			   continuation)))))
+                          (find-nodes-by-name "pl" sxml)))
+            (c-blob (first (find-nodes-by-name "query-continue" sxml))))
+        (values links (when c-blob
+                       (destructuring-bind (_1 _2 (_3 ((_4 continuation)))) c-blob
+                           (declare (ignore _1 _2 _3 _4))
+                           continuation)))))
     :doc
     "Gets a list of all links on the provided pages.
 
@@ -507,31 +507,31 @@ Parameters:
   plnamespace    - Only list links to pages in these namespaces.
                    (For example, set plnamespace to 0 to get only article links in Wikipedia.)
 
-Examples: 
+Examples:
   ; gets 10 results
-  (get-links \"Pigment\" :pllimit 10) 
+  (get-links \"Pigment\" :pllimit 10)
 
   ; gets 10 results, then gets 10 more using a continuation token
-  (multiple-value-bind (firstresults continuation-token) 
-		  (get-links \"Pigment\" :pllimit 10)
-		(let ((secondresults (get-links \"Pigment\" :pllimit 10 :plcontinue continuation-token)))
-		  (list firstresults secondresults)))
+  (multiple-value-bind (firstresults continuation-token)
+                  (get-links \"Pigment\" :pllimit 10)
+                (let ((secondresults (get-links \"Pigment\" :pllimit 10 :plcontinue continuation-token)))
+                  (list firstresults secondresults)))
 ")
 
 
 (define-proxy recent-changes
     :core ((action query)
-	   (list recentchanges))
+           (list recentchanges))
   :req ()
   :props (rcstart  rcend rcdir rcnamespace  (rcprop "user|comment|title|timestamp|ids")  rcshow  rclimit  rctype)
   :processor
   (lambda (sxml)
     (mapcar #'(lambda (n)
-		 (convert-sxml-attribs-to-alist
-		  (cadr n)))
+                 (convert-sxml-attribs-to-alist
+                  (cadr n)))
       (cddr (first (cddr (find "query" (cddr sxml)
-			       :key #'first
-			       :test #'string-equal)))))
+                               :key #'first
+                               :test #'string-equal)))))
     ;sxml
     )
   :doc
@@ -558,22 +558,22 @@ Parameters:
   rctype         - Which types of changes to show.
                    Values (separate with '|'): edit, new, log
 
- Returns: 
+ Returns:
 ")
 
 (define-proxy user-contribs
     :core ((action query)
-	   (list usercontribs))
+           (list usercontribs))
   :req (ucuser)
   :props (uclimit ucstart ucend ucuserprefix ucdir ucnamespace (ucprop "comment|title|timestamp|ids") ucshow)
   :processor
   (lambda (sxml)
     (mapcar #'(lambda (n)
-		 (convert-sxml-attribs-to-alist
-		  (cadr n)))
+                 (convert-sxml-attribs-to-alist
+                  (cadr n)))
       (cddr (first (cddr (find "query" (cddr sxml)
-			       :key #'first
-			       :test #'string-equal)))))
+                               :key #'first
+                               :test #'string-equal)))))
     ;sxml
     )
   :doc
@@ -639,7 +639,7 @@ Parameters:
    Returns the object, and the number of new items fetched."
   (loop with fetched = 0
         while (and (has-more-results-p qr)
-		   (if (numberp at-least) (< fetched at-least) 't))
+                   (if (numberp at-least) (< fetched at-least) 't))
         do (incf fetched (second (multiple-value-list (get-more-results-once qr))))
         do (sleep pause)
         finally (return (values qr fetched))))
@@ -662,11 +662,11 @@ Parameters:
   (let ((mediawiki *mediawiki*))  ; capture *mediawiki* into lexical scope
     (multiple-value-bind (revs c-token) (apply #'get-revisions args)
       (values revs (when c-token c-token)
-	      (when c-token
-		(setf (getf (cdr args) :rvstartid) c-token) ;set next rvstartid
-		(lambda ()
-		  (with-mediawiki (mediawiki) ; use captured *mediawiki*
-		    (apply #'get-revisions-and-closure args))))))))
+              (when c-token
+                (setf (getf (cdr args) :rvstartid) c-token) ;set next rvstartid
+                (lambda ()
+                  (with-mediawiki (mediawiki) ; use captured *mediawiki*
+                    (apply #'get-revisions-and-closure args))))))))
 
 (defun get-revisions-result (&rest args)
   "Like get-revisions, but returns a query-result object"

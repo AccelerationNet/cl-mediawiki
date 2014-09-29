@@ -22,21 +22,21 @@
 (with-package-iterator (sym '(:cl-mediawiki) :internal :external)
   (let (more? symbol accessibility pkg)
     (loop do (multiple-value-setq (more? symbol accessibility pkg) (sym))
-	     
-	     (when (eql (find-package :cl-mediawiki)
-			pkg)
-	       (ignore-errors
-		 (unintern symbol :cl-mediawiki-test)
-		 (import (list symbol) :cl-mediawiki-test)))
-	  while more?
-	  )))
+
+             (when (eql (find-package :cl-mediawiki)
+                        pkg)
+               (ignore-errors
+                 (unintern symbol :cl-mediawiki-test)
+                 (import (list symbol) :cl-mediawiki-test)))
+          while more?
+          )))
 
 (defmacro def-test (name (&rest args) &body body)
   (loop for tag in args
-	do (setf (get tag :tests)
-		 (union (alexandria:ensure-list (get tag :tests))
-			(list name))))
-  `(lisp-unit:define-test ,name 
+        do (setf (get tag :tests)
+                 (union (alexandria:ensure-list (get tag :tests))
+                        (list name))))
+  `(lisp-unit:define-test ,name
      (progn
        ,@body
        )))
@@ -51,13 +51,13 @@
   (let* ((*package* (find-package :buildnode-test))
          (lisp-unit:*print-failures* t)
          (lisp-unit:*print-errors* t)
-	 (lisp-unit::*use-debugger* use-debugger)
-	 (tests (append (alexandria:ensure-list tests)
-			(loop for suite in (alexandria:ensure-list suites)
+         (lisp-unit::*use-debugger* use-debugger)
+         (tests (append (alexandria:ensure-list tests)
+                        (loop for suite in (alexandria:ensure-list suites)
                               appending (get suite :tests))))
          (actual-std-out *standard-output*)
-	 (out (with-output-to-string (s)
-		(let ((*standard-output*
+         (out (with-output-to-string (s)
+                (let ((*standard-output*
                         (make-broadcast-stream s actual-std-out)))
                   (if (null tests)
                       (lisp-unit::%run-all-thunks)
