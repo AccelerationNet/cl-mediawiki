@@ -9,8 +9,8 @@
 
 (defmacro with-mediawiki ((obj) &body body)
   `(let ((*mediawiki* ,(typecase obj
-			 (string `(make-instance 'mediawiki :url ,obj))
-			 (T obj))))
+                         (string `(make-instance 'mediawiki :url ,obj))
+                         (T obj))))
      ,@body
      ))
 
@@ -19,22 +19,22 @@
   ;; force-ssl should either be whats passed in, or if nothing is passed in
   ;; check to see what protocol we used to connect to the server
   (let ((force-ssl (if force-ssl-p
-		       force-ssl
-		       (eq 0 (search "https://" (url *mediawiki*) :test #'char-equal ))
-		       ))
-	(full-url (format nil "~a/api.php" (url *mediawiki*))))
+                       force-ssl
+                       (eq 0 (search "https://" (url *mediawiki*) :test #'char-equal ))
+                       ))
+        (full-url (format nil "~a/api.php" (url *mediawiki*))))
 ;;    (format *debug-io* "~&api-params == ~S" api-params) ; debugging
     (push '("format" . "xml") api-params)
     (multiple-value-bind (content status headers uri stream must-close status-word)
-	(let ((drakma:*drakma-default-external-format* *default-external-format*))
-	  (drakma:http-request
-	   full-url
-	   :method method
-	   :basic-authorization basic-authorization
-	   :force-ssl force-ssl
-	   :parameters api-params
-	   :cookie-jar (cookie-jar *mediawiki*)
-	   ))
+        (let ((drakma:*drakma-default-external-format* *default-external-format*))
+          (drakma:http-request
+           full-url
+           :method method
+           :basic-authorization basic-authorization
+           :force-ssl force-ssl
+           :parameters api-params
+           :cookie-jar (cookie-jar *mediawiki*)
+           ))
 ;;      (format *debug-io* "~&uri == ~S" uri) ; debugging
       (declare (ignore headers uri stream must-close status-word))
       (values content status))))
@@ -48,23 +48,23 @@
    (if either the pair is nil or the value is nil, we drop that param)
   "
   (flet ((format-list-element (el)
-	   (typecase el
-	     (symbol (string-downcase (princ-to-string el)))
-	     (T (princ-to-string el)))))
+           (typecase el
+             (symbol (string-downcase (princ-to-string el)))
+             (T (princ-to-string el)))))
     (loop for binding in params
-	  ;; only collect when we have a key and value
-	  when (and binding (cadr binding))
-	    collecting
-	 (destructuring-bind (key val) binding
-	   ;; grabs a downcased key and its value (downcased if symbol)
-	   ;; as a pair of strings
-	   (cons (format nil "~(~a~)" key)
-		 (typecase val
-		   ;;lists should be pipe delimited
-		   (list (format nil "~{~a~^|~}" (mapcar #'format-list-element val)))
-		   (symbol (format nil "~(~a~)" val))
-		   (pathname val)
-		   (T (princ-to-string val))))))))
+          ;; only collect when we have a key and value
+          when (and binding (cadr binding))
+            collecting
+         (destructuring-bind (key val) binding
+           ;; grabs a downcased key and its value (downcased if symbol)
+           ;; as a pair of strings
+           (cons (format nil "~(~a~)" key)
+                 (typecase val
+                   ;;lists should be pipe delimited
+                   (list (format nil "~{~a~^|~}" (mapcar #'format-list-element val)))
+                   (symbol (format nil "~(~a~)" val))
+                   (pathname val)
+                   (T (princ-to-string val))))))))
 
 (defun parse-api-response-to-sxml (content)
   (cxml:parse content (cxml-xmls:make-xmls-builder) :validate nil))
@@ -74,8 +74,8 @@
 
 (defun convert-sxml-attribs-to-alist (sxml-attribs)
   (loop for ((key val) . rest) = sxml-attribs then rest
-	collecting (cons (symbolize-string key)  val)
-	while rest))
+        collecting (cons (symbolize-string key)  val)
+        while rest))
 
 (define-condition media-wiki-error (error)
   ((obj :accessor obj :initarg :obj :initform nil)
@@ -84,20 +84,20 @@
 
 (defmethod print-object ((err media-wiki-error) stream)
   (format stream "MEDIA-WIKI-ERROR: ~s ~a ~%~s"
-	  (code err)
-	  (message err)
-	  (obj err)
-	  ))
+          (code err)
+          (message err)
+          (obj err)
+          ))
 
 (defun check-sxml-for-error (xml)
   "search the response for <api><error attribs></api>"
   (let* ((kid (find-nodes-by-name "error" xml))
-	 (err (second kid)))
+         (err (second kid)))
     (when err
       (error 'media-wiki-error
-	     :obj xml
-	     :code (sxml-attribute-value "code" err)
-	     :message (sxml-attribute-value "info" err)))))
+             :obj xml
+             :code (sxml-attribute-value "code" err)
+             :message (sxml-attribute-value "info" err)))))
 
 ;; Copyright (c) 2008 Accelerated Data Works, Russ Tyndall
 

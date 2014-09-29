@@ -17,18 +17,18 @@ returns values:
          ;; if we have more than match, then odds are we're getting warnings.
          (kid (if (eq 1 (length matches)) (first matches)
                   (second matches)))
-	 (alist (second kid)))
+         (alist (second kid)))
     (unless alist
       (error 'media-wiki-error
-	     :obj xml
-	     :message (format nil "Couldnt find ~a results"
-			      name)))
+             :obj xml
+             :message (format nil "Couldnt find ~a results"
+                              name)))
     (unless (string-equal "success" (sxml-attribute-value "result" alist))
       (error 'media-wiki-error
-	     :message (format nil "Failed to ~A ~A : ~A "
-			      name datum alist)
-	     :code nil
-	     :obj xml))
+             :message (format nil "Failed to ~A ~A : ~A "
+                              name datum alist)
+             :code nil
+             :obj xml))
     (values xml alist)))
 
 (defun check-edit-response (datum xml)
@@ -41,23 +41,23 @@ returns values:
 
 (defun create-page
     (title text &key
-	   (summary  "cl-mediawiki:create-page")
-	   (override nil))
+           (summary  "cl-mediawiki:create-page")
+           (override nil))
   "Creates a new wiki page
    If override is true, replace the existing page with the text passed in (if the page already exists)
   "
   (let* ((tokens (get-action-tokens title))
-	 (parameters
-	  (make-parameters
-	   `((action edit)
-	     (token ,(edit-token tokens))
-	     (title ,title)
-	     (basetimestamp ,(timestamp tokens))
-	     ,(when (not override)
-		  '(createonly  true))
-	     (summary ,summary)
-	     (text ,text)))
-	   ))
+         (parameters
+          (make-parameters
+           `((action edit)
+             (token ,(edit-token tokens))
+             (title ,title)
+             (basetimestamp ,(timestamp tokens))
+             ,(when (not override)
+                  '(createonly  true))
+             (summary ,summary)
+             (text ,text)))
+           ))
       (check-edit-response
        title
        (parse-api-response-to-sxml (make-api-request parameters :method :post)))))
@@ -65,41 +65,41 @@ returns values:
 (defun add-new-page-section (title section-title section-text &key no-create)
   "Creates a new == section-title ==  at the bottom of the page. followed by the specified text"
   (let* ((tokens (get-action-tokens title))
-	 (parameters
-	  (make-parameters
-	   `((action edit)
-	     (token ,(edit-token tokens))
-	     (title ,title)
-	     (section new)
-	     (summary ,section-title)
-	     (basetimestamp ,(timestamp tokens))
-	     ,(when no-create
-		'(nocreate T))
-	     (text ,section-text)))
-	   ))
+         (parameters
+          (make-parameters
+           `((action edit)
+             (token ,(edit-token tokens))
+             (title ,title)
+             (section new)
+             (summary ,section-title)
+             (basetimestamp ,(timestamp tokens))
+             ,(when no-create
+                '(nocreate T))
+             (text ,section-text)))
+           ))
       (check-edit-response
        title
        (parse-api-response-to-sxml
-	(make-api-request parameters :method :post)))
+        (make-api-request parameters :method :post)))
     ))
 
 (defun append-text-to-page
     (title text &key
-	   no-create
-	   (summary  "cl-mediawiki:append-text-to-page"))
+           no-create
+           (summary  "cl-mediawiki:append-text-to-page"))
   "appends the text the the end of the page (will create the page if neccessary, unless no-create is passed)"
   (let* ((tokens (get-action-tokens title))
-	 (parameters
-	  (make-parameters
-	   `((action edit)
-	     (token ,(edit-token tokens))
-	     (title ,title)
-	     (summary ,summary)
-	     (basetimestamp ,(timestamp tokens))
-	     ,(when no-create
-		'(nocreate T))
-	     (appendtext ,text)))
-	   ))
+         (parameters
+          (make-parameters
+           `((action edit)
+             (token ,(edit-token tokens))
+             (title ,title)
+             (summary ,summary)
+             (basetimestamp ,(timestamp tokens))
+             ,(when no-create
+                '(nocreate T))
+             (appendtext ,text)))
+           ))
     (check-edit-response
      title
      (parse-api-response-to-sxml
@@ -108,22 +108,22 @@ returns values:
 
 (defun prepend-text-to-page
     (title text &key
-	   (summary  "cl-mediawiki:prepend-text-to-page")
-	   no-create)
+           (summary  "cl-mediawiki:prepend-text-to-page")
+           no-create)
   "Adds the text to the beginning of the page named title
    (will create the page if neccessary unless no-create is true)"
-  (let* ((tokens (get-action-tokens title)) 
-	 (parameters
-	  (make-parameters
-	   `((action edit)
-	     (token ,(edit-token tokens))
-	     (title ,title)
-	     (summary ,summary)
-	     (basetimestamp ,(timestamp tokens))
-	     ,(when no-create
-		'(nocreate T))
-	     (prependtext ,text)))
-	   ))
+  (let* ((tokens (get-action-tokens title))
+         (parameters
+          (make-parameters
+           `((action edit)
+             (token ,(edit-token tokens))
+             (title ,title)
+             (summary ,summary)
+             (basetimestamp ,(timestamp tokens))
+             ,(when no-create
+                '(nocreate T))
+             (prependtext ,text)))
+           ))
     (check-edit-response
      title
      (parse-api-response-to-sxml
@@ -132,7 +132,7 @@ returns values:
 
 (defun set-page-content
     (title text &key no-create
-	   (summary  "cl-mediawiki:set-page-content"))
+           (summary  "cl-mediawiki:set-page-content"))
   "sets the text of a wiki page 'title' to the specified 'text',
 
      title: The wiki page to set the content of
@@ -141,17 +141,17 @@ returns values:
      summary: The comment associated with changing the page content
     "
   (let* ((tokens (get-action-tokens title))
-	 (parameters
-	  (make-parameters
-	   `((action edit)
-	     (token ,(edit-token tokens))
-	     (title ,title)
-	     (summary ,summary)
-	     (basetimestamp ,(timestamp tokens))
-	     ,(when no-create
-		'(nocreate T))
-	     (text ,text)))
-	   ))
+         (parameters
+          (make-parameters
+           `((action edit)
+             (token ,(edit-token tokens))
+             (title ,title)
+             (summary ,summary)
+             (basetimestamp ,(timestamp tokens))
+             ,(when no-create
+                '(nocreate T))
+             (text ,text)))
+           ))
     (check-edit-response
      title
      (parse-api-response-to-sxml
@@ -159,7 +159,7 @@ returns values:
     ))
 
 (defun set-section-content (title rvsection text
-				  &key (summary "cl-mediawiki:set-section-content"))
+                                  &key (summary "cl-mediawiki:set-section-content"))
   "Sets the text of section 'rvsection' on page 'title' to 'text'. 'text' MUST contain the section title markup!"
   ;; see http://lists.wikimedia.org/pipermail/mediawiki-api/2008-March/000390.html for
   ;; a description of rvsection
@@ -167,38 +167,38 @@ returns values:
   (unless (string-equal "==" (subseq text 0 2))
     (error "Cannot set content of ~a section ~a, no section title detect in new content: ~a " rvsection title text))
   (let* ((tokens (get-action-tokens title))
-	 (parameters
-	  (make-parameters
-	   `((action edit)
-	     (token ,(edit-token tokens))
-	     (title ,title)
-	     (section ,rvsection)
-	     (summary ,summary)
-	     (basetimestamp ,(timestamp tokens))
-	     (text ,text)))))
+         (parameters
+          (make-parameters
+           `((action edit)
+             (token ,(edit-token tokens))
+             (title ,title)
+             (section ,rvsection)
+             (summary ,summary)
+             (basetimestamp ,(timestamp tokens))
+             (text ,text)))))
       (check-edit-response
        title
        (parse-api-response-to-sxml
-	(make-api-request parameters :method :post)))))
+        (make-api-request parameters :method :post)))))
 
 #+cl-ppcre
 (defun regex-replace-all (regex target-page replacement  &key default-content (summary "cl-mediawiki:regex-replace-all"))
   "Does a regex find/replace on the target page. If the page is empty, will set to default content if provided
     Works by calling get-content then regex-replacing on the content, then calling set-content "
   (let ((content (get-page-content target-page)))
-    (set-page-content target-page 
+    (set-page-content target-page
      (if content
-	 (cl-ppcre:regex-replace-all regex content replacement)
-	 default-content)
+         (cl-ppcre:regex-replace-all regex content replacement)
+         default-content)
      :no-create (null default-content)
      :summary summary)))
 
 (defun upload (path &key
-		      (filename (file-namestring path))
-		      (comment "uploaded via cl-mediawiki")
-		      (text "")
-		      watch
-		      ignorewarnings
+                      (filename (file-namestring path))
+                      (comment "uploaded via cl-mediawiki")
+                      (text "")
+                      watch
+                      ignorewarnings
                     &aux (path (truename path)))
   "uploads a file from a local path.
 
@@ -207,26 +207,26 @@ returns 2 values:
  2. string for the wikimarkup to link to the file (eg: [[File:Foo.png]])"
   (check-type path pathname)
   (let ((parameters
-	  (make-parameters
-	   `((action upload)
-	     (token ,(edit-token (get-action-tokens "cl-mediawiki")))
-	     (filename ,filename)
-	     (file ,(truename path))
-	     (comment ,comment)
-	     (text ,text)
-	     (watch ,(if watch 1 0))
-	     (ignorewarnings ,(if ignorewarnings 1 0))
-	     ))))
+          (make-parameters
+           `((action upload)
+             (token ,(edit-token (get-action-tokens "cl-mediawiki")))
+             (filename ,filename)
+             (file ,(truename path))
+             (comment ,comment)
+             (text ,text)
+             (watch ,(if watch 1 0))
+             (ignorewarnings ,(if ignorewarnings 1 0))
+             ))))
     (multiple-value-bind (xml node-attrs)
-	;; TODO: throw better error about disallowed mime types
-	;;  eg: uploading a .asd file is not allowed
-	(check-api-response
-	 (parse-api-response-to-sxml
-	  (make-api-request parameters :method :post))
-	 "upload" filename)
+        ;; TODO: throw better error about disallowed mime types
+        ;;  eg: uploading a .asd file is not allowed
+        (check-api-response
+         (parse-api-response-to-sxml
+          (make-api-request parameters :method :post))
+         "upload" filename)
       (declare (ignore xml))
       (let ((filename (sxml-attribute-value "filename" node-attrs)))
-	(values filename (format nil "[[File:~a]]" filename))))))
+        (values filename (format nil "[[File:~a]]" filename))))))
 
 
 ;; Copyright (c) 2008 Accelerated Data Works, Russ Tyndall
