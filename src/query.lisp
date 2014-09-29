@@ -596,8 +596,32 @@ Parameters:
 
 ")
 
+(define-proxy list-all-pages
+  :core ((action query)
+         (list allpages))
+  ; :req (ucuser)
+  :props (aplimit apfrom)
+  :processor
+  (lambda (sxml)
+    (mapcar #'(lambda (n)
+                (convert-sxml-attribs-to-alist
+                 (cadr n)))
+            (cddr (first (cddr (find "query" (cddr sxml)
+                                     :key #'first
+                                     :test #'string-equal)))))
+    ;sxml
+    )
+  :doc
+    "  List all pages.
+Parameters:
+  aplimit        - The maximum number of contributions to return.
+                   No more than 500 (5000 for bots) allowed.
+                   Default: 10
+  apfrom         - Start listing at this title. The title need not exist
+")
+
 ;;;; query-result and friends
-;; a query-result encapsulates the response to a query, and allows
+;; a query-result eStart listing at this title. The title need not ncapsulates the response to a query, and allows
 ;; for repeated follow-up queries
 
 (define-modify-macro

@@ -36,7 +36,8 @@
    #:get-page-info
    #:get-image-info
    #:pages-that-embed
-   #:upload)
+   #:upload
+   #:list-all-pages)
   (:documentation
    "This package provides a client to the mediawiki API, which is used
 by Wikipedia among others.
