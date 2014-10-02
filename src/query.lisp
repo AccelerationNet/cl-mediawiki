@@ -643,6 +643,23 @@ Parameters:
   aufrom         - Start listing at this user.
 ")
 
+(define-proxy site-info
+  :core ((action query)
+         (meta siteinfo))
+  :props ()
+  :processor
+  (lambda (sxml)
+    (car (mapcar #'(lambda (n)
+                     (convert-sxml-attribs-to-alist
+                      (cadr n)))
+                 (cddr (find "query" (cddr sxml)
+                             :key #'first
+                             :test #'string-equal)))))
+  :doc
+  "  Returns overall site information.
+Parameters: none
+")
+
 ;;;; query-result and friends
 ;; a query-result eStart listing at this title. The title need not ncapsulates the response to a query, and allows
 ;; for repeated follow-up queries
