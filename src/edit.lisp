@@ -182,7 +182,7 @@ returns values:
         (make-api-request parameters :method :post)))))
 
 #+cl-ppcre
-(defun regex-replace-all (regex target-page replacement  &key default-content (summary "cl-mediawiki:regex-replace-all"))
+(defun mw-regex-replace-all (regex target-page replacement  &key default-content (summary "cl-mediawiki:mw-regex-replace-all"))
   "Does a regex find/replace on the target page. If the page is empty, will set to default content if provided
     Works by calling get-content then regex-replacing on the content, then calling set-content "
   (let ((content (get-page-content target-page)))
