@@ -14,6 +14,9 @@
      ,@body
      ))
 
+(defvar *default-external-format* :utf-8
+  "sets as the drakma default coding system")
+
 (defun make-api-request (api-params &key (basic-authorization (auth *mediawiki* )) (force-ssl nil force-ssl-p) (method :get))
   "Calls the media wiki api providing the specified parameters"
   ;; force-ssl should either be whats passed in, or if nothing is passed in
@@ -38,9 +41,6 @@
 ;;      (format *debug-io* "~&uri == ~S" uri) ; debugging
       (declare (ignore headers uri stream must-close status-word))
       (values content status))))
-
-(defvar *default-external-format* :utf-8
-  "sets as the drakma default coding system")
 
 (defun make-parameters (params)
   "Takes a list of bindings (:key :val) and prepares them for transit
