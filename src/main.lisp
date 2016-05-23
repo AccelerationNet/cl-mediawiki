@@ -4,8 +4,9 @@
    (auth :accessor auth :initarg :auth :initform nil)
    (cookie-jar :accessor cookie-jar :initarg cookie-jar :initform (make-instance 'drakma:cookie-jar))))
 
-(defvar *mediawiki* nil
-  "the current instance of media wiki we are dealing with (mostly for use with with-mediawiki)")
+(defvar *mediawiki*)
+(setf (documentation '*mediawiki* 'variable)
+      "the current instance of media wiki we are dealing with (mostly for use with with-mediawiki)")
 
 (defmacro with-mediawiki ((obj) &body body)
   `(let ((*mediawiki* ,(typecase obj
