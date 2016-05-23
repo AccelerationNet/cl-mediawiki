@@ -18,20 +18,8 @@
                                      (:file "edit"))))
   ;; Additional Functionality will be loaded if cl-ppcre is in
   ;; the features list during compilation
-  :depends-on (:cxml :drakma :alexandria))
-
-(defsystem :cl-mediawiki-test
-  :description "A tool to help talk to mediawiki's api."
-  :components ((:module :tests
-                        :serial T
-                        :components ((:file "setup")
-                                     (:file "query" )
-                                     (:file "edit"))))
-  ;; Additional Functionality will be loaded if cl-ppcre is in
-  ;; the features list during compilation
-  :depends-on (:cl-mediawiki :lisp-unit))
-
-(defmethod asdf:perform ((o asdf:test-op) (c (eql (find-system :cl-mediawiki))))
-  (asdf:oos 'asdf:load-op :cl-mediawiki-test)
-  (funcall (intern "RUN-TESTS" :cl-mediawiki-test)
-           :use-debugger nil))
+  :depends-on (:cxml :drakma :alexandria)
+  :in-order-to ((test-op (asdf:load-op :cl-mediawiki-test)))
+  :perform (test-op (o c)
+                    (uiop:symbol-call :lisp-unit2 'run-tests
+                                      :package :cl-mediawiki-test)))
