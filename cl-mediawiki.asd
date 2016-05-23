@@ -21,5 +21,4 @@
   :depends-on (:cxml :drakma :alexandria)
   :in-order-to ((test-op (asdf:load-op :cl-mediawiki-test)))
   :perform (test-op (o c)
-                    (uiop:symbol-call :lisp-unit2 'run-tests
-                                      :package :cl-mediawiki-test)))
+                    (uiop:symbol-call :cl-mediawiki-test 'run-tests)))
