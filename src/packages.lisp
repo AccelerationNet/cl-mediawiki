@@ -36,9 +36,12 @@
    #:get-page-info
    #:get-image-info
    #:pages-that-embed
-   #:upload)
-  (:documentation 
-   "This package provides a client to the mediawiki API, which is used 
+   #:upload
+   #:list-all-pages
+   #:list-all-users
+   #:site-info)
+  (:documentation
+   "This package provides a client to the mediawiki API, which is used
 by Wikipedia among others.
 
 Exported functions fairly closely mirror the command structure of the
@@ -46,8 +49,8 @@ API, which is summarized here: http://en.wikipedia.org/w/api.php
 
  Usage example:
  ;; setup to use only Wikipedia
- CL-USER> (setf cl-mediawiki:*mediawiki* 
-                (cl-mediawiki:with-mediawiki (\"http://en.wikipedia.org/w\") 
+ CL-USER> (setf cl-mediawiki:*mediawiki*
+                (cl-mediawiki:with-mediawiki (\"http://en.wikipedia.org/w\")
                  cl-mediawiki:*mediawiki*))
 
  ;; get content of article titled Pigment

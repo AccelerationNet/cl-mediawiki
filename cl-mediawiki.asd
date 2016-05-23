@@ -3,35 +3,23 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package :net.acceleration.cl-mediawiki.system)
     (defpackage :net.acceleration.cl-mediawiki.system
-	(:use :common-lisp :asdf))))
+        (:use :common-lisp :asdf))))
 
 (in-package :net.acceleration.cl-mediawiki.system)
 
 (defsystem :cl-mediawiki
   :description "A tool to help talk to mediawiki's api."
   :components ((:module :src
-			:serial T
-			:components ((:file "packages")
-				     (:file "util" )
-				     (:file "main" )
-				     (:file "query" )
-				     (:file "edit"))))
+                :serial T
+                :components ((:file "packages")
+                             (:file "util" )
+                             (:file "main" )
+                             (:file "query" )
+                             (:file "edit"))))
   ;; Additional Functionality will be loaded if cl-ppcre is in
   ;; the features list during compilation
-  :depends-on (:cxml :drakma :alexandria :cl-ppcre))
-
-(defsystem :cl-mediawiki-test
-  :description "A tool to help talk to mediawiki's api."
-  :components ((:module :tests
-			:serial T
-			:components ((:file "setup")
-				     (:file "query" )
-				     (:file "edit"))))
-  ;; Additional Functionality will be loaded if cl-ppcre is in
-  ;; the features list during compilation
-  :depends-on (:cl-mediawiki :lisp-unit2))
-
-(defmethod asdf:perform ((o asdf:test-op) (c (eql (find-system :cl-mediawiki))))
-  (asdf:load-system :cl-mediawiki-test)
-  (let ((*package* (find-package :cl-mediawiki-test)))
-    (eval (read-from-string "(run-tests)"))))
+  :depends-on (:cxml :drakma :alexandria)
+  :in-order-to ((test-op (asdf:load-op :cl-mediawiki-test)))
+  :perform (test-op (o c)
+                    (uiop:symbol-call :lisp-unit2 'run-tests
+                                      :package :cl-mediawiki-test)))
