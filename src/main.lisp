@@ -8,12 +8,14 @@
 (setf (documentation '*mediawiki* 'variable)
       "the current instance of media wiki we are dealing with (mostly for use with with-mediawiki)")
 
+(defun ensure-mediawiki (obj)
+  (etypecase obj
+    (string (make-instance 'mediawiki :url obj))
+    (mediawiki obj)))
+
 (defmacro with-mediawiki ((obj) &body body)
-  `(let ((*mediawiki* ,(typecase obj
-                         (string `(make-instance 'mediawiki :url ,obj))
-                         (T obj))))
-     ,@body
-     ))
+  `(let ((*mediawiki* (ensure-mediawiki ,obj)))
+     ,@body))
 
 (defvar *default-external-format* :utf-8
   "sets as the drakma default coding system")
