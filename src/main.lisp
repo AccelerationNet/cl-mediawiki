@@ -2,6 +2,7 @@
 (defclass mediawiki ()
   ((url :accessor url :initarg :url :initform nil)
    (auth :accessor auth :initarg :auth :initform nil)
+   (proxy :accessor proxy :initarg :proxy :initform nil)
    (cookie-jar :accessor cookie-jar :initarg cookie-jar :initform (make-instance 'drakma:cookie-jar))))
 
 (defvar *mediawiki*)
@@ -36,6 +37,7 @@
           (drakma:http-request
            full-url
            :method method
+           :proxy (if (proxy *mediawiki*) (proxy *mediawiki*) drakma:*default-http-proxy*)
            :basic-authorization basic-authorization
            :force-ssl force-ssl
            :parameters api-params
